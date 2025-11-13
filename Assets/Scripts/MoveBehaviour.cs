@@ -13,12 +13,15 @@ public class MoveBehaviour : MonoBehaviour
     public int currentGridX;
     public int currentGridY;
 
+    public GameObject outlineIndicator;
+
     public LettersGrid lettersGrid;
 
     private void Start()
     {
         currentGridX = startGridX;
         currentGridY = startGridY;
+        
     }
 
     private void Update()
@@ -28,6 +31,7 @@ public class MoveBehaviour : MonoBehaviour
         var worldPos = lettersGrid.GetWorldPos(currentGridX, currentGridY);
         transform.SetPositionAndRotation(worldPos + offset,
             Quaternion.identity);
+        outlineIndicator.transform.SetLocalY(-yOffset);
         if (currentLetter != null)
         {
             var targetPos = currentGridX;
