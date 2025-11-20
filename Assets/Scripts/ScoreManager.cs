@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class ScoreManager : NetworkBehaviour
 {
-    public TMP_Text hostScore;
-    public TMP_Text clientScore;
+    private TMP_Text _hostScore;
+    private TMP_Text _clientScore;
 
     public NetworkList<PlayerScoreData> Scores = new NetworkList<PlayerScoreData>();
 
@@ -37,10 +37,10 @@ public class ScoreManager : NetworkBehaviour
                 clientScoreValue = scoreData.score;
         }
 
-        if (hostScore != null)
-            hostScore.text = hostScoreValue.ToString();
-        if (clientScore != null)
-            clientScore.text = clientScoreValue.ToString();
+        if (_hostScore != null)
+            _hostScore.text = hostScoreValue.ToString();
+        if (_clientScore != null)
+            _clientScore.text = clientScoreValue.ToString();
     }
 
 

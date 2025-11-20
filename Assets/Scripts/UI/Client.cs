@@ -1,14 +1,18 @@
 using System;
+using System.Text.RegularExpressions;
 using Unity.Netcode;
 using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem;
 
-public class ClientTextInput : NetworkBehaviour
+public class Client : NetworkBehaviour
 {
     private WordChecker _wordChecker;
     public TMP_InputField inputField;
+    public TMP_Text scoreText;
+    public TMP_Text prompt;
 
+    public NetworkVariable<int> Score = new NetworkVariable<int>();
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
@@ -21,13 +25,43 @@ public class ClientTextInput : NetworkBehaviour
             // 本地玩家 → 可以编辑
             inputField.interactable = true;
         }
+
+        Score.OnValueChanged += OnScoreChanged;
+        
+        var promptGenerator = FindAnyObjectByType<PromptGenerator>();
+        if (promptGenerator != null)
+        {
+            promptGenerator.CurrentPrompt.OnValueChanged += OnPromptChanged;
+        }
     }
 
-    private string sharedText = "";
+    private void OnPromptChanged(PromptGenerator.Prompt previousValue, PromptGenerator.Prompt newValue)
+    {
+        UpdatePrompt(newValue);
+    }
+
+    private void UpdatePrompt(PromptGenerator.Prompt value)
+    {
+        prompt.text = value.ToString();
+    }
+    private void OnScoreChanged(int previousValue, int newValue)
+    {
+        UpdateScore(newValue);
+        Debug.Log($"Score Changed from {previousValue} to {newValue}");
+    }
+
+    private void UpdateScore(int value)
+    {
+        scoreText.text = value.ToString();
+    }
+    [Rpc(SendTo.Server)]
+    private void ChangeScoreServerRpc(int amt)
+    {
+        Score.Value += amt;
+    }
 
     private void Start()
     {
-        // 只监听 local player 的输入
         if (IsOwner)
         {
             inputField.onValueChanged.AddListener(OnLocalInputChanged);
@@ -45,22 +79,23 @@ public class ClientTextInput : NetworkBehaviour
         }
     }
 
-    #region Check Logic
+    #region Check & Score
 
     private void Check()
     {
         if (_wordChecker.CheckWord(inputField.text))
         {
             Debug.Log("Word is valid");
-            
-            var scoreManager = FindAnyObjectByType<ScoreManager>();
-            scoreManager?.AddScoreServerRpc(5);
+
+            ChangeScoreServerRpc(5);
         }
     }
 
     #endregion
 
     #region UI
+
+    private string sharedText = "";
 
     private void OnLocalInputChanged(string newValue)
     {
