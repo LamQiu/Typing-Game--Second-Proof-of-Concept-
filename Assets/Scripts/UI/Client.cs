@@ -40,6 +40,7 @@ public class Client : NetworkBehaviour
     private PromptGenerator.Prompt _currentPrompt;
     private string sharedText = "";
     private bool _checkValid = false;
+    private bool _isResoluting;
     private List<string> usedWords = new List<string>();
 
     #endregion
@@ -98,12 +99,14 @@ public class Client : NetworkBehaviour
         UpdateInputFieldInteractability(false);
         Debug.Log(OwnerClientId);
         hintText.text = "Press Enter to Confirm";
+        _isResoluting =  true;
     }
 
     public void OnEndResolutionPhase()
     {
         UpdateInputFieldInteractability(true);
         ClearInputField();
+        _isResoluting = false;
     }
 
     public void OnEnterNextRound()
@@ -211,7 +214,7 @@ public class Client : NetworkBehaviour
             }
         }
         
-        if (EventSystem.current.currentSelectedGameObject != inputField.gameObject)
+        if (EventSystem.current.currentSelectedGameObject != inputField.gameObject && !_isResoluting)
         {
             inputField.Select();
             inputField.ActivateInputField();
