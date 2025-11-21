@@ -127,6 +127,7 @@ public class Client : NetworkBehaviour
                 gm.EndGameServerRpc();
             }
         }
+
         var healthT = (float)newValue / maxHealth;
         healthBar.fillAmount = healthT;
     }
@@ -196,38 +197,44 @@ public class Client : NetworkBehaviour
             }
             else
             {
-                var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
-                if (validInDictionary)
+                Check();
+            }
+        }
+    }
+
+    public void Check()
+    {
+        var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
+        if (validInDictionary)
+        {
+            var validOfPrompt = _wordChecker.CheckWordPromptValidity(inputField.text, _currentPrompt);
+            if (validOfPrompt)
+            {
+                var wordUsed = usedWords.Contains(inputField.text.ToLower());
+                if (wordUsed)
                 {
-                    var validOfPrompt = _wordChecker.CheckWordPromptValidity(inputField.text, _currentPrompt);
-                    if (validOfPrompt)
-                    {
-                        var wordUsed = usedWords.Contains(inputField.text.ToLower());
-                        if (wordUsed)
-                        {
-                            hintText.text = $"Word already used";
-                        }
-                        else
-                        {
-                            ChangeLetterCountServerRpc(inputField.text.Length);
-                            hintText.text = $"Valid Word {inputField.text} Submitted";
-                            MarkUsedWordsServerRpc(inputField.text);
-                            _roundManager.SubmitAnswerServerRpc(OwnerClientId);
-                            inputField.interactable = false;
-                        }
-                        
-                    }
-                    else
-                    {
-                        hintText.text = $"Word {inputField.text} doesn't meet criteria. Try Agin";
-                    }
+                    hintText.text = $"Word already used";
                 }
                 else
                 {
-                    hintText.text = $"Invalid word {inputField.text}. Try Again";
+                    ChangeLetterCountServerRpc(inputField.text.Length);
+                    hintText.text = $"Valid Word {inputField.text} Submitted";
+                    MarkUsedWordsServerRpc(inputField.text);
+                    _roundManager.SubmitAnswerServerRpc(OwnerClientId);
+                    inputField.interactable = false;
                 }
             }
+            else
+            {
+                hintText.text = $"Word {inputField.text} doesn't meet criteria. Try Agin";
+            }
         }
+        else
+        {
+            hintText.text = $"Invalid word {inputField.text}. Try Again";
+        }
+
+        ChangeLetterCountServerRpc(inputField.text.Length);
     }
     [Rpc(SendTo.Server)]
     private void MarkUsedWordsServerRpc(string word)

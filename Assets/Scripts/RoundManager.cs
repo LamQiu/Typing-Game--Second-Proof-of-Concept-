@@ -112,6 +112,7 @@ public class RoundManager : NetworkBehaviour
 
         if (TimeRemaining.Value <= 0)
         {
+            OnRoundTimeOutClientRpc();
             EnterResolutionPhase();
         }
     }
@@ -179,6 +180,15 @@ public class RoundManager : NetworkBehaviour
         EnterNextRound();
 
         EndResolutionPhaseClientRpc();
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    private void OnRoundTimeOutClientRpc()
+    {
+        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
+        foreach (var client in clients)
+        {
+            client.Check();
+        }
     }
 
     [Rpc(SendTo.ClientsAndHost)]
