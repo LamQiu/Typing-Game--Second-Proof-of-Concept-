@@ -1,9 +1,11 @@
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class ConnectionManager : MonoBehaviour
 {
+    public TMP_Text connectionHindText;
     private bool isConnecting = false;   // 防止重复连接
 
     private void Update()
@@ -48,6 +50,7 @@ public class ConnectionManager : MonoBehaviour
             if (nm.IsConnectedClient)
             {
                 Debug.Log("Connected to host!");
+                connectionHindText.gameObject.SetActive(false);
                 isConnecting = false;
                 return;
             }
@@ -63,6 +66,7 @@ public class ConnectionManager : MonoBehaviour
         await System.Threading.Tasks.Task.Yield();
 
         nm.StartHost();
+        connectionHindText.gameObject.SetActive(false);
 
         isConnecting = false;
     }

@@ -9,7 +9,6 @@ public class WorldCanvasPositionUpdater : NetworkBehaviour
     {
         if (IsOwner)
         {
-            Debug.Log("I am the owner of " + OwnerClientId);
             UpdatePositionRpc();
         }
     }

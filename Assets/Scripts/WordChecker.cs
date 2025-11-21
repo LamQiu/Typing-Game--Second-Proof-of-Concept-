@@ -19,9 +19,35 @@ public class WordChecker
         }
     }
 
-
-    public bool CheckWord(string input)
+    public bool CheckWordDictionaryValidity(string word)
     {
-        return _dictionary.Contains(input.ToLower());
+        return _dictionary.Contains(word.ToLower());
+    }
+    public bool CheckWordPromptValidity(string input, PromptGenerator.Prompt prompt)
+    {
+        var isValid = _dictionary.Contains(input.ToLower());
+        if (!isValid)  return false;
+
+        var isValidForPrompt = true;
+        var content = prompt.content.ToString().ToLower();
+        var lowerInput = input.ToLower();
+        if (content.Length > lowerInput.Length)
+            return false;
+        
+        switch (prompt.type)
+        {
+            case PromptGenerator.PromptType.None:
+                return false;
+            case PromptGenerator.PromptType.StartWith:
+                isValidForPrompt = lowerInput.StartsWith(content);
+                break;
+            case PromptGenerator.PromptType.Contains:
+                isValidForPrompt = lowerInput.Contains(content);
+                break;
+            case PromptGenerator.PromptType.EndWith:
+                isValidForPrompt = lowerInput.EndsWith(content);
+                break;
+        }
+        return isValidForPrompt;
     }
 }
