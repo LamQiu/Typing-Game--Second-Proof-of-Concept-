@@ -280,7 +280,7 @@ public class Client : NetworkBehaviour
     {
         sharedText = value;
 
-        if (inputField != null)
+        if (inputField != null && !IsOwner)
             inputField.text = value;
     }
 
