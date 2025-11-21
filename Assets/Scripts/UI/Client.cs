@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Unity.Netcode;
 using UnityEngine;
 using TMPro;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -38,6 +39,7 @@ public class Client : NetworkBehaviour
     private RoundManager _roundManager;
     private PromptGenerator.Prompt _currentPrompt;
     private string sharedText = "";
+    private bool _checkValid = false;
     private List<string> usedWords = new List<string>();
 
     #endregion
@@ -74,6 +76,7 @@ public class Client : NetworkBehaviour
 
         _roundManager = FindAnyObjectByType<RoundManager>();
         playerIndex.text = "Player " + ((int)OwnerClientId + 1);
+        worldCanvas.gameObject.SetActive(false);
     }
 
     #endregion
@@ -105,12 +108,19 @@ public class Client : NetworkBehaviour
 
     public void OnEnterNextRound()
     {
-        Debug.Log(OwnerClientId);
         hintText.text = "Press Enter to Submit";
         if (!IsOwner)
         {
             worldCanvas.gameObject.SetActive(false);
         }
+        else
+        {
+            worldCanvas.gameObject.SetActive(true);
+            inputField.Select();
+            inputField.ActivateInputField();
+        }
+
+        _checkValid = false;
     }
 
     #endregion
@@ -200,10 +210,18 @@ public class Client : NetworkBehaviour
                 Check();
             }
         }
+        
+        if (EventSystem.current.currentSelectedGameObject != inputField.gameObject)
+        {
+            inputField.Select();
+            inputField.ActivateInputField();
+        }
     }
-
     public void Check()
     {
+        if(!IsOwner) return;
+        if (_checkValid) return;
+        
         var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
         if (validInDictionary)
         {
@@ -222,6 +240,7 @@ public class Client : NetworkBehaviour
                     MarkUsedWordsServerRpc(inputField.text);
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId);
                     inputField.interactable = false;
+                    _checkValid = true;
                     return;
                 }
             }
@@ -236,6 +255,10 @@ public class Client : NetworkBehaviour
         }
 
         ChangeLetterCountServerRpc(0);
+        inputField.text = "";
+        SubmitTextServerRpc("");
+        inputField.Select();
+        inputField.ActivateInputField();
     }
     [Rpc(SendTo.Server)]
     private void MarkUsedWordsServerRpc(string word)
