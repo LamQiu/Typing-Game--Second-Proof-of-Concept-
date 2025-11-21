@@ -15,8 +15,8 @@ public class GameManager : NetworkBehaviour
         GameStarted.Value = true;
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void EndGameServerRpc(ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] 
+    public void EndGameServerRpc()
     {
         GameStarted.Value = false;
     }
