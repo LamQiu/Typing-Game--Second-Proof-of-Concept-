@@ -107,6 +107,8 @@ public class Client : NetworkBehaviour
         UpdateInputFieldInteractability(true);
         ClearInputField();
         _isResoluting = false;
+        inputField.Select();
+        inputField.ActivateInputField();
     }
 
     public void OnEnterNextRound()
