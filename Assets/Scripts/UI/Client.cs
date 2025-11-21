@@ -222,6 +222,7 @@ public class Client : NetworkBehaviour
                     MarkUsedWordsServerRpc(inputField.text);
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId);
                     inputField.interactable = false;
+                    return;
                 }
             }
             else
@@ -234,7 +235,7 @@ public class Client : NetworkBehaviour
             hintText.text = $"Invalid word {inputField.text}. Try Again";
         }
 
-        ChangeLetterCountServerRpc(inputField.text.Length);
+        ChangeLetterCountServerRpc(0);
     }
     [Rpc(SendTo.Server)]
     private void MarkUsedWordsServerRpc(string word)
