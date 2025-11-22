@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -26,6 +27,12 @@ public class RoundManager : NetworkBehaviour
     [HideInInspector] public NetworkVariable<float> TimeRemaining = new NetworkVariable<float>();
     [HideInInspector] public NetworkVariable<float> ResolutionTimeRemaining = new NetworkVariable<float>();
 
+    private void Start()
+    {
+        resolutionText.gameObject.SetActive(false);
+        timerImage.gameObject.SetActive(false);
+    }
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -46,7 +53,7 @@ public class RoundManager : NetworkBehaviour
         if (newValue)
         {
             _started = true;
-            if(IsServer)
+            if (IsServer)
             {
                 StartCoroutine(DelayEnterNextRound());
             }
@@ -136,7 +143,7 @@ public class RoundManager : NetworkBehaviour
         {
             submittedClients.Add(clientId);
         }
-        
+
         if (submittedClients.Count >= 2)
         {
             EnterResolutionPhase();
@@ -152,10 +159,10 @@ public class RoundManager : NetworkBehaviour
         {
             confirmedClients.Add(clientId);
         }
-        
+
         PlayerManager.Instance.GetHost().UpdateConfirmClientRpc(clientId);
         PlayerManager.Instance.GetClient(1).UpdateConfirmClientRpc(clientId);
-        
+
         if (confirmedClients.Count >= 2)
         {
             EndResolutionPhase();
@@ -181,6 +188,7 @@ public class RoundManager : NetworkBehaviour
 
         EndResolutionPhaseClientRpc();
     }
+
     [Rpc(SendTo.ClientsAndHost)]
     private void OnRoundTimeOutClientRpc()
     {
@@ -214,6 +222,8 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterNextRoundClientRpc()
     {
+        resolutionText.gameObject.SetActive(false);
+        timerImage.gameObject.SetActive(true);
         var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
         foreach (var client in clients)
         {
@@ -234,7 +244,7 @@ public class RoundManager : NetworkBehaviour
             var biggerOrSmallerOrEqual = difference > 0 ? ">" : "<";
             if (difference == 0) biggerOrSmallerOrEqual = "=";
             text = "Player 1 Letter Count " + hostScore + "    " + //"\n" +
-                   biggerOrSmallerOrEqual + "    " +//"\n" +
+                   biggerOrSmallerOrEqual + "    " + //"\n" +
                    "Player 2 Letter Count " + clientScore; //+ "\n";
 
             if (difference > 0)
@@ -253,8 +263,10 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdateResolutionTextClientRpc(string text)
     {
+        resolutionText.gameObject.SetActive(true);
         resolutionText.text = text;
     }
+
     private void EnterNextRound()
     {
         Debug.Log("Round Ended!");
