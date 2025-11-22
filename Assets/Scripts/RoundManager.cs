@@ -67,11 +67,11 @@ public class RoundManager : NetworkBehaviour
                 var playerID = "";
                 if (PlayerManager.Instance.GetHost().Health.Value <= 0)
                 {
-                    playerID = "Player 1";
+                    playerID = "Player 2";
                 }
                 else
                 {
-                    playerID = "Player 2";
+                    playerID = "Player 1";
                 }
                 EndGameClientRpc(playerID);
             }
