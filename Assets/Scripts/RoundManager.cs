@@ -11,7 +11,8 @@ public class RoundManager : NetworkBehaviour
     public float[] roundTimes;
     private int _currentRound = -1;
     public float roundTime = 15f;
-    public Image timerImage;
+    public Image hostTimerImage;
+    public Image clientTimerImage;
 
     public float resoluteTime = 5f;
     private bool _startResolute;
@@ -30,7 +31,8 @@ public class RoundManager : NetworkBehaviour
     private void Start()
     {
         resolutionText.gameObject.SetActive(false);
-        timerImage.gameObject.SetActive(false);
+        hostTimerImage.gameObject.SetActive(false);
+        clientTimerImage.gameObject.SetActive(false);
     }
 
     public override void OnNetworkSpawn()
@@ -223,7 +225,8 @@ public class RoundManager : NetworkBehaviour
     private void EnterNextRoundClientRpc()
     {
         resolutionText.gameObject.SetActive(false);
-        timerImage.gameObject.SetActive(true);
+        hostTimerImage.gameObject.SetActive(true);
+        clientTimerImage.gameObject.SetActive(true);
         var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
         foreach (var client in clients)
         {
@@ -283,9 +286,10 @@ public class RoundManager : NetworkBehaviour
 
     private void OnTimeChanged(float oldValue, float newValue)
     {
-        if (timerImage != null)
+        if (hostTimerImage != null && clientTimerImage != null)
         {
-            timerImage.fillAmount = newValue / roundTime;
+            hostTimerImage.fillAmount = newValue / roundTime;
+            clientTimerImage.fillAmount = newValue / roundTime;
         }
     }
 }
