@@ -99,7 +99,7 @@ public class Client : NetworkBehaviour
         UpdateInputFieldInteractability(false);
         Debug.Log(OwnerClientId);
         hintText.text = "Press Enter to Confirm";
-        _isResoluting =  true;
+        _isResoluting = true;
     }
 
     public void OnEndResolutionPhase()
@@ -215,18 +215,19 @@ public class Client : NetworkBehaviour
                 Check();
             }
         }
-        
+
         if (EventSystem.current.currentSelectedGameObject != inputField.gameObject && !_isResoluting)
         {
             inputField.Select();
             inputField.ActivateInputField();
         }
     }
-    public void Check()
+
+    public void Check(bool keepInput = false)
     {
-        if(!IsOwner) return;
+        if (!IsOwner) return;
         if (_checkValid) return;
-        
+
         var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
         if (validInDictionary)
         {
@@ -260,11 +261,15 @@ public class Client : NetworkBehaviour
         }
 
         ChangeLetterCountServerRpc(0);
-        inputField.text = "";
-        SubmitTextServerRpc("");
-        inputField.Select();
-        inputField.ActivateInputField();
+        if (!keepInput)
+        {
+            ClearInputField();
+            SubmitTextServerRpc("");
+            inputField.Select();
+            inputField.ActivateInputField();
+        }
     }
+
     [Rpc(SendTo.Server)]
     private void MarkUsedWordsServerRpc(string word)
     {

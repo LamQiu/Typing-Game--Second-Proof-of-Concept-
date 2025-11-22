@@ -62,18 +62,19 @@ public class RoundManager : NetworkBehaviour
         }
         else
         {
-            winImage.SetActive(true);
-            var playerID = "";
-            if (PlayerManager.Instance.GetHost().Health.Value <= 0)
+            if (IsServer)
             {
-                playerID = "Player 1";
+                var playerID = "";
+                if (PlayerManager.Instance.GetHost().Health.Value <= 0)
+                {
+                    playerID = "Player 1";
+                }
+                else
+                {
+                    playerID = "Player 2";
+                }
+                EndGameClientRpc(playerID);
             }
-            else
-            {
-                playerID = "Player 2";
-            }
-
-            winText.text = playerID + " Wins";
         }
     }
 
@@ -99,7 +100,7 @@ public class RoundManager : NetworkBehaviour
             {
                 _startResolute = false;
                 ResolutionTimeRemaining.Value = resoluteTime;
-                ResoluteServerRpc();
+                StartCoroutine(DelayResolve());
             }
 
             ResolutionTimeRemaining.Value -= Time.deltaTime;
@@ -126,6 +127,11 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
+    private IEnumerator DelayResolve()
+    {
+        yield return null;
+        ResoluteServerRpc();
+    }
     private void GeneratePrompt()
     {
         var pg = FindAnyObjectByType<PromptGenerator>();
@@ -197,7 +203,7 @@ public class RoundManager : NetworkBehaviour
         var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
         foreach (var client in clients)
         {
-            client.Check();
+            client.Check(true);
         }
     }
 
@@ -232,6 +238,13 @@ public class RoundManager : NetworkBehaviour
         {
             client.OnEnterNextRound();
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void EndGameClientRpc(string playerID)
+    {
+        winImage.SetActive(true);
+        winText.text = playerID + " Wins";
     }
 
     [Rpc(SendTo.Server)]
