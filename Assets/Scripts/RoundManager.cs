@@ -221,6 +221,7 @@ public class RoundManager : NetworkBehaviour
         if (start)
         {
             _started = true;
+            winImage.SetActive(false);
             titleImage.gameObject.SetActive(false);
 
             if (IsServer)
