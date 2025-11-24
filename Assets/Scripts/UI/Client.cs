@@ -197,6 +197,7 @@ public class Client : NetworkBehaviour
         }
         else
         {
+            inputField.interactable = true;
             worldCanvas.gameObject.SetActive(true);
             inputField.Select();
             inputField.ActivateInputField();
