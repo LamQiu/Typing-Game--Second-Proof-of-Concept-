@@ -160,7 +160,7 @@ public class Client : NetworkBehaviour
     {
         if (OwnerClientId == id)
         {
-            hintText.text = "Confirmed";
+            hintText.text = "";
         }
     }
 
@@ -168,7 +168,7 @@ public class Client : NetworkBehaviour
     {
         worldCanvas.gameObject.SetActive(true);
         UpdateInputFieldInteractability(false);
-        hintText.text = "Press Enter to Confirm";
+        hintText.text = "Press Enter to Continue";
         _isAnswering = false;
         _isResoluting = true;
         
