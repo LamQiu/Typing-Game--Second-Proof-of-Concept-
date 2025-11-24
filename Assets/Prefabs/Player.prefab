@@ -1312,7 +1312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerUI
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 1
+  maxHealth: 20
   worldCanvas: {fileID: 7390714165478221000}
   playerIndex: {fileID: 2715243320846040646}
   inputField: {fileID: 5259739127061829684}
