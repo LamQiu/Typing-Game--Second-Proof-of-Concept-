@@ -1,53 +1,73 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class GameManager : NetworkBehaviour
 {
-    public NetworkVariable<bool> GameStarted = new NetworkVariable<bool>();
+    public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
 
-    // 供客户端请求由 host/start server 开始游戏（如果你希望由客户端触发，可以用 ServerRpc）
-    [ServerRpc(RequireOwnership = false)]
-    public void StartGameServerRpc(ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void StartGameServerRpc()
     {
-        GameStarted.Value = true;
+        GameStartedState.Value = true;
+        Debug.Log("Game Started!");
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)] 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void EndGameServerRpc()
     {
-        GameStarted.Value = false;
+        GameStartedState.Value = false;
     }
+    // public override void OnNetworkSpawn()
+    // {
+    //     if (IsServer)
+    //     {
+    //         NetworkManager.SceneManager.OnLoadComplete += OnSceneLoaded;
+    //     }
+    // }
+    //
+    // private void OnSceneLoaded(ulong clientId, string sceneName, LoadSceneMode mode)
+    // {
+    //     if (clientId != NetworkManager.LocalClientId)
+    //         return;
+    //
+    //     Debug.Log("Scene Loaded. Now start game.");
+    //     StartGameServerRpc();
+    // }
+    //
+    // public override void OnNetworkDespawn()
+    // {
+    //     if (IsServer && NetworkManager != null)
+    //     {
+    //         NetworkManager.SceneManager.OnLoadComplete -= OnSceneLoaded;
+    //     }
+    // }
+
 
     private void Update()
     {
-        // 只有 host (本地有输入) 可以通过按键触发重启逻辑
-        if (!IsHost) return;
+        if (!IsServer) return;
 
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame)
         {
-            //RestartGame();
+            //StartCoroutine(RestartGame());
         }
     }
 
-    private void RestartGame()
-    {
-        // Despawn all player objects
-        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
-        {
-            if (client.PlayerObject != null && client.PlayerObject.IsSpawned)
-            {
-                client.PlayerObject.Despawn(true); // true = destroy
-            }
-        }
-
-        // Reload scene using Netcode SceneManager
-        NetworkManager.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
-            UnityEngine.SceneManagement.LoadSceneMode.Single
-        );
-    }
-
+    // public IEnumerator RestartGame()
+    // {
+    //     NetworkManager.Singleton.Shutdown();
+    //     yield return null;
+    //     RestartNetworkClientRpc();
+    // }
+    // [Rpc(SendTo.ClientsAndHost)]
+    // private void RestartNetworkClientRpc()
+    // {
+    //     SceneManager.Instance.LoadTitleScene();
+    // }
 }

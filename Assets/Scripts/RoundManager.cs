@@ -8,25 +8,43 @@ using UnityEngine.UI;
 
 public class RoundManager : NetworkBehaviour
 {
+    // ----------------------------
+    // Public Inspector Variables
+    // ----------------------------
     public float[] roundTimes;
-    private int _currentRound = -1;
     public float roundTime = 15f;
+    public float resoluteTime = 5f;
+
     public Image hostTimerImage;
     public Image clientTimerImage;
 
-    public float resoluteTime = 5f;
-    private bool _startResolute;
     public TMP_Text resolutionText;
-    public GameObject winImage;
     public TMP_Text winText;
-    public string sharedResoluteText;
+    public GameObject winImage;
+    public GameObject titleImage;
 
-    private bool _started;
-    private bool _promptGenerated;
-
+    // ----------------------------
+    // Networked Variables
+    // ----------------------------
     public NetworkVariable<bool> IsResolutionPhase = new NetworkVariable<bool>();
     [HideInInspector] public NetworkVariable<float> TimeRemaining = new NetworkVariable<float>();
     [HideInInspector] public NetworkVariable<float> ResolutionTimeRemaining = new NetworkVariable<float>();
+
+    // ----------------------------
+    // Private State
+    // ----------------------------
+    private bool _started;
+    private bool _promptGenerated;
+    private bool _startResolute;
+
+    private int _currentRound = -1;
+
+    private readonly List<ulong> submittedAnswerClients = new List<ulong>();
+    private readonly List<ulong> confirmedResolutionClients = new List<ulong>();
+
+    // ============================================================
+    // Unity Lifecycle
+    // ============================================================
 
     private void Start()
     {
@@ -34,54 +52,15 @@ public class RoundManager : NetworkBehaviour
         hostTimerImage.gameObject.SetActive(false);
         clientTimerImage.gameObject.SetActive(false);
     }
-
     public override void OnNetworkSpawn()
     {
-        if (IsServer)
+        if (FindAnyObjectByType<GameManager>() is GameManager gm)
         {
-        }
-
-        var gm = FindAnyObjectByType<GameManager>();
-        if (gm)
-        {
-            gm.GameStarted.OnValueChanged += OnGameStartedChanged;
+            gm.GameStartedState.OnValueChanged += OnGameStartedStateChanged;
         }
 
         TimeRemaining.OnValueChanged += OnTimeChanged;
-    }
-
-    private void OnGameStartedChanged(bool previousValue, bool newValue)
-    {
-        if (newValue)
-        {
-            _started = true;
-            if (IsServer)
-            {
-                StartCoroutine(DelayEnterNextRound());
-            }
-        }
-        else
-        {
-            if (IsServer)
-            {
-                var playerID = "";
-                if (PlayerManager.Instance.GetHost().Health.Value <= 0)
-                {
-                    playerID = "Player 2";
-                }
-                else
-                {
-                    playerID = "Player 1";
-                }
-                EndGameClientRpc(playerID);
-            }
-        }
-    }
-
-    private IEnumerator DelayEnterNextRound()
-    {
-        yield return new WaitForSeconds(0.1f);
-        EnterNextRound();
+        titleImage.gameObject.SetActive(false);
     }
 
     public override void OnDestroy()
@@ -89,29 +68,31 @@ public class RoundManager : NetworkBehaviour
         TimeRemaining.OnValueChanged -= OnTimeChanged;
     }
 
+
+    // ============================================================
+    // Update Loop (Server Only)
+    // ============================================================
+
     private void Update()
     {
-        if (!IsServer) return;
-        if (!_started) return;
+        if (!IsServer || !_started) return;
 
         if (IsResolutionPhase.Value)
         {
-            if (_startResolute)
-            {
-                _startResolute = false;
-                ResolutionTimeRemaining.Value = resoluteTime;
-                StartCoroutine(DelayResolve());
-            }
-
-            ResolutionTimeRemaining.Value -= Time.deltaTime;
-            if (ResolutionTimeRemaining.Value <= 0)
-            {
-                //EndResolutionPhase();
-            }
-
+            HandleResolutionPhase();
             return;
         }
 
+        HandleRoundPhase();
+    }
+
+
+    // ============================================================
+    // Round & Phase Flow
+    // ============================================================
+
+    private void HandleRoundPhase()
+    {
         if (!_promptGenerated)
         {
             GeneratePrompt();
@@ -127,59 +108,50 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
+    private void HandleResolutionPhase()
+    {
+        if (_startResolute)
+        {
+            _startResolute = false;
+            ResolutionTimeRemaining.Value = resoluteTime;
+            StartCoroutine(DelayResolve());
+        }
+
+        ResolutionTimeRemaining.Value -= Time.deltaTime;
+
+        // logic unchanged - original did nothing when <= 0
+    }
+
+
+    private IEnumerator DelayEnterNextRound()
+    {
+        yield return new WaitForSeconds(0.1f);
+        EnterNextRound();
+    }
+
     private IEnumerator DelayResolve()
     {
         yield return null;
         ResoluteServerRpc();
     }
-    private void GeneratePrompt()
+
+
+    private void EnterNextRound()
     {
-        var pg = FindAnyObjectByType<PromptGenerator>();
-        if (pg)
-        {
-            Debug.Log($"Generating prompt for round");
-            pg.TryUpdatePrompt();
-        }
+        Debug.Log("Round Ended!");
+
+        _currentRound = Mathf.Clamp(_currentRound + 1, 0, roundTimes.Length - 1);
+
+        roundTime = roundTimes[_currentRound];
+        TimeRemaining.Value = roundTime;
+
+        EnterNextRoundClientRpc();
     }
 
-    List<ulong> submittedClients = new List<ulong>();
-
-    [Rpc(SendTo.Server)]
-    public void SubmitAnswerServerRpc(ulong clientId)
-    {
-        if (!submittedClients.Contains(clientId))
-        {
-            submittedClients.Add(clientId);
-        }
-
-        if (submittedClients.Count >= 2)
-        {
-            EnterResolutionPhase();
-        }
-    }
-
-    List<ulong> confirmedClients = new List<ulong>();
-
-    [Rpc(SendTo.Server)]
-    public void ConfirmResolutionServerRpc(ulong clientId)
-    {
-        if (!confirmedClients.Contains(clientId))
-        {
-            confirmedClients.Add(clientId);
-        }
-
-        PlayerManager.Instance.GetHost().UpdateConfirmClientRpc(clientId);
-        PlayerManager.Instance.GetClient(1).UpdateConfirmClientRpc(clientId);
-
-        if (confirmedClients.Count >= 2)
-        {
-            EndResolutionPhase();
-        }
-    }
 
     private void EnterResolutionPhase()
     {
-        submittedClients.Clear();
+        submittedAnswerClients.Clear();
         IsResolutionPhase.Value = true;
         _startResolute = true;
 
@@ -188,43 +160,132 @@ public class RoundManager : NetworkBehaviour
 
     private void EndResolutionPhase()
     {
-        confirmedClients.Clear();
+        confirmedResolutionClients.Clear();
         IsResolutionPhase.Value = false;
+
         _promptGenerated = false;
         UpdateResolutionTextClientRpc("");
-        EnterNextRound();
 
+        EnterNextRound();
         EndResolutionPhaseClientRpc();
     }
+
+
+    // ============================================================
+    // Game Start / End
+    // ============================================================
+
+    private void OnGameStartedStateChanged(bool previousStartState, bool start)
+    {
+        // Start
+        if (start)
+        {
+            _started = true;
+
+            if (IsServer)
+                StartCoroutine(DelayEnterNextRound());
+        }
+        // End
+        else
+        {
+            if (!IsServer) return;
+
+            string winner =
+                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "Player 2" : "Player 1";
+
+            EndGameClientRpc(winner);
+        }
+    }
+
+
+    // ============================================================
+    // Player Submissions / Confirmations
+    // ============================================================
+
+    [Rpc(SendTo.Server)]
+    public void SubmitAnswerServerRpc(ulong clientId)
+    {
+        if (!submittedAnswerClients.Contains(clientId))
+            submittedAnswerClients.Add(clientId);
+
+        if (submittedAnswerClients.Count >= 2)
+            EnterResolutionPhase();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void ConfirmResolutionServerRpc(ulong clientId)
+    {
+        if (!confirmedResolutionClients.Contains(clientId))
+            confirmedResolutionClients.Add(clientId);
+
+        PlayerManager.Instance.GetHost().UpdateConfirmClientRpc(clientId);
+        PlayerManager.Instance.GetClient(1).UpdateConfirmClientRpc(clientId);
+
+        if (confirmedResolutionClients.Count >= 2)
+            EndResolutionPhase();
+    }
+    
+    // ============================================================
+    // Prompt + Result Resolution
+    // ============================================================
+
+    private void GeneratePrompt()
+    {
+        if (FindAnyObjectByType<PromptGenerator>() is PromptGenerator pg)
+        {
+            Debug.Log("Generating prompt for round");
+            pg.TryUpdatePrompt();
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void ResoluteServerRpc()
+    {
+        string text = "";
+
+        if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
+        {
+            int hostScore = pm.GetHost().LetterCount.Value;
+            int clientScore = pm.GetClient(1).LetterCount.Value;
+            int difference = hostScore - clientScore;
+
+            string comparison = difference > 0 ? ">" : difference < 0 ? "<" : "=";
+
+            text = $"Player 1 Letter Count {hostScore}    {comparison}    Player 2 Letter Count {clientScore}";
+
+            if (difference > 0)
+                pm.GetClient(1).Health.Value -= difference;
+            else if (difference < 0)
+                pm.GetHost().Health.Value += difference;
+        }
+
+        UpdateResolutionTextClientRpc(text);
+    }
+
+
+    // ============================================================
+    // Client RPC Calls
+    // ============================================================
 
     [Rpc(SendTo.ClientsAndHost)]
     private void OnRoundTimeOutClientRpc()
     {
-        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
-        foreach (var client in clients)
-        {
-            client.Check(true);
-        }
+        foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
+            c.Check(true);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterResolutionPhaseClientRpc()
     {
-        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
-        foreach (var client in clients)
-        {
-            client.OnEnterResolutionPhase();
-        }
+        foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
+            c.OnEnterResolutionPhase();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void EndResolutionPhaseClientRpc()
     {
-        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
-        foreach (var client in clients)
-        {
-            client.OnEndResolutionPhase();
-        }
+        foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
+            c.OnEndResolutionPhase();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -233,47 +294,9 @@ public class RoundManager : NetworkBehaviour
         resolutionText.gameObject.SetActive(false);
         hostTimerImage.gameObject.SetActive(true);
         clientTimerImage.gameObject.SetActive(true);
-        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
-        foreach (var client in clients)
-        {
-            client.OnEnterNextRound();
-        }
-    }
 
-    [Rpc(SendTo.ClientsAndHost)]
-    private void EndGameClientRpc(string playerID)
-    {
-        winImage.SetActive(true);
-        winText.text = playerID + " Wins";
-    }
-
-    [Rpc(SendTo.Server)]
-    private void ResoluteServerRpc()
-    {
-        string text = "";
-        var pm = FindAnyObjectByType<PlayerManager>();
-        if (pm)
-        {
-            var hostScore = pm.GetHost().LetterCount.Value;
-            var clientScore = pm.GetClient(1).LetterCount.Value;
-            var difference = hostScore - clientScore;
-            var biggerOrSmallerOrEqual = difference > 0 ? ">" : "<";
-            if (difference == 0) biggerOrSmallerOrEqual = "=";
-            text = "Player 1 Letter Count " + hostScore + "    " + //"\n" +
-                   biggerOrSmallerOrEqual + "    " + //"\n" +
-                   "Player 2 Letter Count " + clientScore; //+ "\n";
-
-            if (difference > 0)
-            {
-                pm.GetClient(1).Health.Value -= difference;
-            }
-            else if (difference < 0)
-            {
-                pm.GetHost().Health.Value += difference;
-            }
-        }
-
-        UpdateResolutionTextClientRpc(text);
+        foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
+            c.OnEnterNextRound();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -283,26 +306,22 @@ public class RoundManager : NetworkBehaviour
         resolutionText.text = text;
     }
 
-    private void EnterNextRound()
+    [Rpc(SendTo.ClientsAndHost)]
+    private void EndGameClientRpc(string playerID)
     {
-        Debug.Log("Round Ended!");
-        _currentRound++;
-        if (_currentRound >= roundTimes.Length)
-        {
-            _currentRound = roundTimes.Length - 1;
-        }
-
-        roundTime = roundTimes[_currentRound];
-        TimeRemaining.Value = roundTime;
-        EnterNextRoundClientRpc();
+        winImage.SetActive(true);
+        winText.text = playerID + " Wins";
     }
+    // ============================================================
+    // UI Updates
+    // ============================================================
 
     private void OnTimeChanged(float oldValue, float newValue)
     {
-        if (hostTimerImage != null && clientTimerImage != null)
-        {
+        if (hostTimerImage != null)
             hostTimerImage.fillAmount = newValue / roundTime;
+
+        if (clientTimerImage != null)
             clientTimerImage.fillAmount = newValue / roundTime;
-        }
     }
 }

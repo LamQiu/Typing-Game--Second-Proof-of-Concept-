@@ -17,7 +17,7 @@ public class Client : NetworkBehaviour
     public Transform worldCanvas;
     public TMP_Text playerIndex;
     public TMP_InputField inputField;
-    public TMP_Text scoreText;
+    public TMP_Text letterCountText;
     public TMP_Text prompt;
     public Image healthBar;
     public TMP_Text hintText;
@@ -41,6 +41,7 @@ public class Client : NetworkBehaviour
     private string sharedText = "";
     private bool _checkValid = false;
     private bool _isResoluting;
+    private bool _isAnswering;
     private List<string> usedWords = new List<string>();
 
     #endregion
@@ -77,12 +78,12 @@ public class Client : NetworkBehaviour
 
         _roundManager = FindAnyObjectByType<RoundManager>();
         playerIndex.text = "Player " + ((int)OwnerClientId + 1);
-        worldCanvas.gameObject.SetActive(false);
+        //worldCanvas.gameObject.SetActive(false);
     }
 
     #endregion
 
-    #region ===== Resolution Phase Handling =====
+    #region ===== Phase Handling =====
 
     [Rpc(SendTo.ClientsAndHost)]
     public void UpdateConfirmClientRpc(ulong id)
@@ -97,9 +98,15 @@ public class Client : NetworkBehaviour
     {
         worldCanvas.gameObject.SetActive(true);
         UpdateInputFieldInteractability(false);
-        Debug.Log(OwnerClientId);
         hintText.text = "Press Enter to Confirm";
+        _isAnswering = false;
         _isResoluting = true;
+        
+        // Make sure the answer is visible
+        if(IsOwner)
+        {
+            SubmitAnswerDisplayServerRpc(inputField.text);
+        }
     }
 
     public void OnEndResolutionPhase()
@@ -116,7 +123,7 @@ public class Client : NetworkBehaviour
         hintText.text = "Press Enter to Submit";
         if (!IsOwner)
         {
-            worldCanvas.gameObject.SetActive(false);
+            //worldCanvas.gameObject.SetActive(false);
         }
         else
         {
@@ -126,6 +133,7 @@ public class Client : NetworkBehaviour
         }
 
         _checkValid = false;
+        _isAnswering = true;
     }
 
     #endregion
@@ -154,8 +162,8 @@ public class Client : NetworkBehaviour
 
     private void OnLetterCountChanged(int previousValue, int newValue)
     {
-        UpdateLetterCount(newValue);
-        Debug.Log($"Score Changed from {previousValue} to {newValue}");
+        UpdateLetterCountUI(newValue);
+        Debug.Log($"Letter Count Changed from {previousValue} to {newValue}");
     }
 
     #endregion
@@ -168,9 +176,10 @@ public class Client : NetworkBehaviour
         prompt.text = value.ToString();
     }
 
-    private void UpdateLetterCount(int value)
+    private void UpdateLetterCountUI(int value)
     {
-        scoreText.text = "Letter Count:\n" + value.ToString();
+        letterCountText.text = "Letter Count:\n" + value.ToString();
+        
     }
 
     private void UpdateInputFieldInteractability(bool interactable)
@@ -264,7 +273,7 @@ public class Client : NetworkBehaviour
         if (!keepInput)
         {
             ClearInputField();
-            SubmitTextServerRpc("");
+            SubmitAnswerDisplayServerRpc("");
             inputField.Select();
             inputField.ActivateInputField();
         }
@@ -306,23 +315,38 @@ public class Client : NetworkBehaviour
 
     private void OnLocalInputChanged(string newValue)
     {
-        SubmitTextServerRpc(newValue);
+        SubmitAnswerDisplayServerRpc(newValue);
     }
 
     [ServerRpc]
-    private void SubmitTextServerRpc(string value, ServerRpcParams rpcParams = default)
+    private void SubmitAnswerDisplayServerRpc(string value, ServerRpcParams rpcParams = default)
     {
         sharedText = value;
-        UpdateAllClientsClientRpc(value);
+        UpdateAnswerDisplayClientRpc(value);
     }
 
     [ClientRpc]
-    private void UpdateAllClientsClientRpc(string value)
+    private void UpdateAnswerDisplayClientRpc(string value)
     {
         sharedText = value;
 
         if (inputField != null && !IsOwner)
-            inputField.text = value;
+        {
+            if (_isAnswering)
+            {
+                var display = "";
+                for (int i = 0; i < value.Length; i++)
+                {
+                    display += "*";
+                }
+                inputField.text = display;
+            }
+            else
+            {
+                inputField.text = value;
+            }
+        }
+        UpdateLetterCountUI(sharedText.Length);
     }
 
     #endregion
