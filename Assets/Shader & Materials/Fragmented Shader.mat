@@ -53,7 +53,7 @@ Material:
     m_Floats:
     - _Cell_Width: 0.5
     - _Count: 20
-    - _CurrentCount: 5
+    - _CurrentCount: 10
     - _MaxCount: 20
     - _QueueControl: 0
     - _QueueOffset: 0

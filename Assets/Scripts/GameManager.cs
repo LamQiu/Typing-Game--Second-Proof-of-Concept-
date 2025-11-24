@@ -11,6 +11,10 @@ public class GameManager : NetworkBehaviour
 {
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
 
+    private void Start()
+    {
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void StartGameServerRpc()
     {
@@ -56,7 +60,30 @@ public class GameManager : NetworkBehaviour
         if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             //StartCoroutine(RestartGame());
+            StartCoroutine(GameRestart());
+            
+            var roundManager = FindAnyObjectByType<RoundManager>();
+            if (roundManager)
+            {
+                roundManager.ResetRoundManager();
+            }
+
+            var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
+            foreach (var client in clients)
+            {
+                client.ResetClient();
+            }
+            
+            Debug.Log("Game Reset!");
+
         }
+    }
+
+    private IEnumerator GameRestart()
+    {
+        GameStartedState.Value = false;
+        yield return null;
+        GameStartedState.Value = true;
     }
 
     // public IEnumerator RestartGame()

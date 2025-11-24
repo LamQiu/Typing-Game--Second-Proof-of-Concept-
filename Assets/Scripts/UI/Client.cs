@@ -18,6 +18,7 @@ public class Client : NetworkBehaviour
     public TMP_Text playerIndex;
     public TMP_InputField inputField;
     public TMP_Text letterCountText;
+    public Image letterCountIndicator;
     public TMP_Text prompt;
     public Image healthBar;
     public TMP_Text hintText;
@@ -46,6 +47,59 @@ public class Client : NetworkBehaviour
 
     #endregion
 
+    private void UpdateLetterCountIndicator(int letterCount)
+    {
+        var newMat = new Material(letterCountIndicator.material);
+        letterCountIndicator.material = newMat;
+
+        newMat.SetFloat("_CurrentCount", letterCount);
+
+    }
+    public void ResetClient()
+    {
+        // --- Reset local states ---
+        _checkValid = false;
+        _isResoluting = false;
+        _isAnswering = false;
+        usedWords.Clear();
+        sharedText = "";
+
+        // --- Reset UI ---
+        hintText.text = "";
+        prompt.text = "";
+        playerIndex.text = "Player " + ((int)OwnerClientId + 1);
+        inputField.text = "";
+        inputField.interactable = IsOwner;
+        letterCountText.text = "Letter Count:\n0";
+        healthBar.fillAmount = 1f;
+        UpdateLetterCountIndicator(0);
+
+        // hide world canvas on non-owners if that's your intended behavior
+        //worldCanvas.gameObject.SetActive(IsOwner);
+        worldCanvas.gameObject.SetActive(true);
+
+        // --- Reset Network Variables ---
+        if (IsServer)
+        {
+            Health.Value = maxHealth;
+            LetterCount.Value = 0;
+            ResolutionConfirmed.Value = false;
+        }
+
+        // --- Reset input activation ---
+        if (IsOwner)
+        {
+            inputField.Select();
+            inputField.ActivateInputField();
+            inputField.interactable = true;
+        }
+        else
+        {
+            inputField.interactable = false;
+        }
+    }
+
+
     #region ===== Network Spawn =====
 
     public override void OnNetworkSpawn()
@@ -53,32 +107,33 @@ public class Client : NetworkBehaviour
         if (IsServer)
         {
             PlayerManager.Instance.RegisterPlayer(OwnerClientId, this);
-            Health.Value = maxHealth;
+            //Health.Value = maxHealth;
         }
 
-        // Input field ownership
-        if (!IsOwner)
-        {
-            inputField.interactable = false;
-        }
-        else
-        {
-            inputField.interactable = true;
-        }
-
+        ResetClient();
+        // // Input field ownership
+        // if (!IsOwner)
+        // {
+        //     inputField.interactable = false;
+        // }
+        // else
+        // {
+        //     inputField.interactable = true;
+        // }
+        //
         // Listeners
         LetterCount.OnValueChanged += OnLetterCountChanged;
         Health.OnValueChanged += OnHealthChanged;
-
+        
         var promptGenerator = FindAnyObjectByType<PromptGenerator>();
         if (promptGenerator != null)
         {
             promptGenerator.CurrentPrompt.OnValueChanged += OnPromptChanged;
         }
-
+        
         _roundManager = FindAnyObjectByType<RoundManager>();
-        playerIndex.text = "Player " + ((int)OwnerClientId + 1);
-        //worldCanvas.gameObject.SetActive(false);
+        // playerIndex.text = "Player " + ((int)OwnerClientId + 1);
+        // //worldCanvas.gameObject.SetActive(false);
     }
 
     #endregion
@@ -179,7 +234,7 @@ public class Client : NetworkBehaviour
     private void UpdateLetterCountUI(int value)
     {
         letterCountText.text = "Letter Count:\n" + value.ToString();
-        
+        UpdateLetterCountIndicator(value);
     }
 
     private void UpdateInputFieldInteractability(bool interactable)

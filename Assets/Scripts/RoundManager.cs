@@ -45,12 +45,50 @@ public class RoundManager : NetworkBehaviour
     // ============================================================
     // Unity Lifecycle
     // ============================================================
+    public void ResetRoundManager()
+    {
+        if (IsServer)
+        {
+            // Reset timers
+            roundTime = roundTimes.Length > 0 ? roundTimes[0] : 15f;
+            TimeRemaining.Value = roundTime;
+            ResolutionTimeRemaining.Value = resoluteTime;
+
+            // Reset networked state
+            IsResolutionPhase.Value = false;
+        }
+
+        // Reset internal state
+        _started = false;
+        _promptGenerated = false;
+        _startResolute = false;
+
+        _currentRound = -1;
+
+        submittedAnswerClients.Clear();
+        confirmedResolutionClients.Clear();
+
+        // Reset UI elements
+        resolutionText.gameObject.SetActive(false);
+        resolutionText.text = "";
+
+        winImage.SetActive(false);
+        winText.text = "";
+
+        hostTimerImage.gameObject.SetActive(false);
+        clientTimerImage.gameObject.SetActive(false);
+
+        titleImage.gameObject.SetActive(true);
+
+        Debug.Log("RoundManager has been reset.");
+    }
 
     private void Start()
     {
-        resolutionText.gameObject.SetActive(false);
-        hostTimerImage.gameObject.SetActive(false);
-        clientTimerImage.gameObject.SetActive(false);
+        // resolutionText.gameObject.SetActive(false);
+        // hostTimerImage.gameObject.SetActive(false);
+        // clientTimerImage.gameObject.SetActive(false);
+        ResetRoundManager();
     }
     public override void OnNetworkSpawn()
     {
