@@ -19,6 +19,9 @@ public class Client : NetworkBehaviour
     public TMP_InputField inputField;
     public TMP_Text letterCountText;
     public Image letterCountIndicator;
+    public Image letterCountIndicatorBG;
+    public Vector3 letterCountIndicatorBGOffsetHost;
+    public Vector3 letterCountIndicatorBGOffsetClient;
     public TMP_Text prompt;
     public Image healthBar;
     public TMP_Text hintText;
@@ -68,6 +71,18 @@ public class Client : NetworkBehaviour
         hintText.text = "";
         prompt.text = "";
         playerIndex.text = "P" + ((int)OwnerClientId + 1);
+        // Host
+        if (OwnerClientId == 0)
+        {
+            letterCountIndicatorBG.transform.localPosition = letterCountIndicatorBGOffsetHost;
+            healthBar.fillOrigin = 0;
+        }
+        // Client
+        else
+        {
+            letterCountIndicatorBG.transform.localPosition = letterCountIndicatorBGOffsetClient;
+            healthBar.fillOrigin = 1;
+        }
         inputField.text = "";
         inputField.interactable = IsOwner;
         letterCountText.text = "Letter Count:\n0";
@@ -320,7 +335,7 @@ public class Client : NetworkBehaviour
             }
             else
             {
-                hintText = $"Word {inputField.text} doesn't meet criteria. Try Agin";
+                hintText = $"Word {inputField.text} doesn't meet criteria. Try Again";
             }
         }
         else

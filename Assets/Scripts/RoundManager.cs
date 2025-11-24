@@ -91,6 +91,7 @@ public class RoundManager : NetworkBehaviour
         // clientTimerImage.gameObject.SetActive(false);
         ResetRoundManager();
     }
+
     public override void OnNetworkSpawn()
     {
         if (FindAnyObjectByType<GameManager>() is GameManager gm)
@@ -220,6 +221,7 @@ public class RoundManager : NetworkBehaviour
         if (start)
         {
             _started = true;
+            titleImage.gameObject.SetActive(false);
 
             if (IsServer)
                 StartCoroutine(DelayEnterNextRound());
@@ -263,7 +265,7 @@ public class RoundManager : NetworkBehaviour
         if (confirmedResolutionClients.Count >= 2)
             EndResolutionPhase();
     }
-    
+
     // ============================================================
     // Prompt + Result Resolution
     // ============================================================
@@ -290,7 +292,7 @@ public class RoundManager : NetworkBehaviour
 
             string comparison = difference > 0 ? ">" : difference < 0 ? "<" : "=";
 
-            text = $"Player 1 Letter Count {hostScore}    {comparison}    Player 2 Letter Count {clientScore}";
+            text = $"P1 Letter Count {hostScore}    {comparison}    P2 Letter Count {clientScore}";
 
             if (difference > 0)
                 pm.GetClient(1).Health.Value -= difference;
