@@ -124,7 +124,7 @@ public class PromptGenerator : NetworkBehaviour
 
         public override string ToString()
         {
-            return Regex.Replace(type.ToString(), "([a-z])([A-Z])", "$1 $2") + " " + " \"" + content + "\"";
+            return Regex.Replace(type.ToString(), "([a-z])([A-Z])", "$1 $2") + " " + " <color=white>\"" + content + "\"</color>";
         }
     }
 }

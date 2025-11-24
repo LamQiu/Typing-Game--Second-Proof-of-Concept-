@@ -19,6 +19,7 @@ public class RoundManager : NetworkBehaviour
     public Image clientTimerImage;
 
     public TMP_Text resolutionText;
+    public Image resolutionImage;
     public TMP_Text winText;
     public GameObject winImage;
     public GameObject titleImage;
@@ -69,7 +70,7 @@ public class RoundManager : NetworkBehaviour
         confirmedResolutionClients.Clear();
 
         // Reset UI elements
-        resolutionText.gameObject.SetActive(false);
+        resolutionImage.gameObject.SetActive(false);
         resolutionText.text = "";
 
         winImage.SetActive(false);
@@ -229,7 +230,7 @@ public class RoundManager : NetworkBehaviour
             if (!IsServer) return;
 
             string winner =
-                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "Player 2" : "Player 1";
+                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "P2" : "P1";
 
             EndGameClientRpc(winner);
         }
@@ -329,7 +330,7 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterNextRoundClientRpc()
     {
-        resolutionText.gameObject.SetActive(false);
+        resolutionImage.gameObject.SetActive(false);
         hostTimerImage.gameObject.SetActive(true);
         clientTimerImage.gameObject.SetActive(true);
 
@@ -340,7 +341,7 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdateResolutionTextClientRpc(string text)
     {
-        resolutionText.gameObject.SetActive(true);
+        resolutionImage.gameObject.SetActive(true);
         resolutionText.text = text;
     }
 

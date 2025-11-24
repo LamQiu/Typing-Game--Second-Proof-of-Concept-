@@ -67,7 +67,7 @@ public class Client : NetworkBehaviour
         // --- Reset UI ---
         hintText.text = "";
         prompt.text = "";
-        playerIndex.text = "Player " + ((int)OwnerClientId + 1);
+        playerIndex.text = "P" + ((int)OwnerClientId + 1);
         inputField.text = "";
         inputField.interactable = IsOwner;
         letterCountText.text = "Letter Count:\n0";
@@ -189,6 +189,8 @@ public class Client : NetworkBehaviour
 
         _checkValid = false;
         _isAnswering = true;
+
+        Check(updateHint:false);
     }
 
     #endregion
@@ -287,11 +289,12 @@ public class Client : NetworkBehaviour
         }
     }
 
-    public void Check(bool keepInput = false)
+    public void Check(bool keepInput = false, bool updateHint = true)
     {
         if (!IsOwner) return;
         if (_checkValid) return;
 
+        var hintText = "";
         var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
         if (validInDictionary)
         {
@@ -301,12 +304,13 @@ public class Client : NetworkBehaviour
                 var wordUsed = usedWords.Contains(inputField.text.ToLower());
                 if (wordUsed)
                 {
-                    hintText.text = $"Word already used";
+                    hintText = $"Word already used";
                 }
                 else
                 {
                     ChangeLetterCountServerRpc(inputField.text.Length);
-                    hintText.text = $"Valid Word {inputField.text} Submitted";
+                    Debug.Log($"Valid Word \"{inputField.text}\" Submitted");
+                    hintText = $"Valid Word \"{inputField.text}\" Submitted";
                     MarkUsedWordsServerRpc(inputField.text);
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId);
                     inputField.interactable = false;
@@ -316,14 +320,19 @@ public class Client : NetworkBehaviour
             }
             else
             {
-                hintText.text = $"Word {inputField.text} doesn't meet criteria. Try Agin";
+                hintText = $"Word {inputField.text} doesn't meet criteria. Try Agin";
             }
         }
         else
         {
-            hintText.text = $"Invalid word {inputField.text}. Try Again";
+            hintText = $"Invalid word {inputField.text}. Try Again";
         }
 
+        if (updateHint)
+        {
+            this.hintText.text = hintText;
+        }
+        
         ChangeLetterCountServerRpc(0);
         if (!keepInput)
         {
