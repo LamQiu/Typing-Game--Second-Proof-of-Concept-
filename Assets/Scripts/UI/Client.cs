@@ -50,58 +50,57 @@ public class Client : NetworkBehaviour
 
     #endregion
 
-    private void UpdateLetterCountIndicator(int letterCount)
-    {
-        var newMat = new Material(letterCountIndicator.material);
-        letterCountIndicator.material = newMat;
+    #region ===== Reset Helpers =====
 
-        newMat.SetFloat("_CurrentCount", letterCount);
-
-    }
-    public void ResetClient()
+    private void ResetLocalStates()
     {
-        // --- Reset local states ---
         _checkValid = false;
         _isResoluting = false;
         _isAnswering = false;
         usedWords.Clear();
         sharedText = "";
+    }
 
-        // --- Reset UI ---
+    private void ResetUI()
+    {
         hintText.text = "";
         prompt.text = "";
         playerIndex.text = "P" + ((int)OwnerClientId + 1);
-        // Host
+
+        // Host / Client UI difference
         if (OwnerClientId == 0)
         {
             letterCountIndicatorBG.transform.localPosition = letterCountIndicatorBGOffsetHost;
             healthBar.fillOrigin = 0;
         }
-        // Client
         else
         {
             letterCountIndicatorBG.transform.localPosition = letterCountIndicatorBGOffsetClient;
             healthBar.fillOrigin = 1;
         }
+
         inputField.text = "";
         inputField.interactable = IsOwner;
+
         letterCountText.text = "Letter Count:\n0";
         healthBar.fillAmount = 1f;
+
         UpdateLetterCountIndicator(0);
-
-        // hide world canvas on non-owners if that's your intended behavior
-        //worldCanvas.gameObject.SetActive(IsOwner);
         worldCanvas.gameObject.SetActive(true);
+    }
 
-        // --- Reset Network Variables ---
+    private void ResetNetworkVariables()
+    {
         if (IsServer)
         {
             Health.Value = maxHealth;
             LetterCount.Value = 0;
             ResolutionConfirmed.Value = false;
         }
+    }
 
-        // --- Reset input activation ---
+    private void ResetInputActivation()
+    {
         if (IsOwner)
         {
             inputField.Select();
@@ -114,6 +113,26 @@ public class Client : NetworkBehaviour
         }
     }
 
+    #endregion
+
+    #region ===== Reset Entry =====
+
+    public void ResetClient()
+    {
+        ResetLocalStates();
+        ResetUI();
+        ResetNetworkVariables();
+        ResetInputActivation();
+    }
+
+    #endregion
+
+    private void UpdateLetterCountIndicator(int letterCount)
+    {
+        var newMat = new Material(letterCountIndicator.material);
+        letterCountIndicator.material = newMat;
+        newMat.SetFloat("_CurrentCount", letterCount);
+    }
 
     #region ===== Network Spawn =====
 
@@ -122,33 +141,20 @@ public class Client : NetworkBehaviour
         if (IsServer)
         {
             PlayerManager.Instance.RegisterPlayer(OwnerClientId, this);
-            //Health.Value = maxHealth;
         }
 
         ResetClient();
-        // // Input field ownership
-        // if (!IsOwner)
-        // {
-        //     inputField.interactable = false;
-        // }
-        // else
-        // {
-        //     inputField.interactable = true;
-        // }
-        //
-        // Listeners
+
         LetterCount.OnValueChanged += OnLetterCountChanged;
         Health.OnValueChanged += OnHealthChanged;
-        
+
         var promptGenerator = FindAnyObjectByType<PromptGenerator>();
         if (promptGenerator != null)
         {
             promptGenerator.CurrentPrompt.OnValueChanged += OnPromptChanged;
         }
-        
+
         _roundManager = FindAnyObjectByType<RoundManager>();
-        // playerIndex.text = "Player " + ((int)OwnerClientId + 1);
-        // //worldCanvas.gameObject.SetActive(false);
     }
 
     #endregion
@@ -171,9 +177,8 @@ public class Client : NetworkBehaviour
         hintText.text = "Press Enter to Continue";
         _isAnswering = false;
         _isResoluting = true;
-        
-        // Make sure the answer is visible
-        if(IsOwner)
+
+        if (IsOwner)
         {
             SubmitAnswerDisplayServerRpc(inputField.text);
         }
@@ -191,11 +196,8 @@ public class Client : NetworkBehaviour
     public void OnEnterNextRound()
     {
         hintText.text = "Press Enter to Submit";
-        if (!IsOwner)
-        {
-            //worldCanvas.gameObject.SetActive(false);
-        }
-        else
+
+        if (IsOwner)
         {
             inputField.interactable = true;
             worldCanvas.gameObject.SetActive(true);
@@ -206,7 +208,7 @@ public class Client : NetworkBehaviour
         _checkValid = false;
         _isAnswering = true;
 
-        Check(updateHint:false);
+        Check(updateHint: false);
     }
 
     #endregion
@@ -312,6 +314,7 @@ public class Client : NetworkBehaviour
 
         var hintText = "";
         var validInDictionary = _wordChecker.CheckWordDictionaryValidity(inputField.text);
+
         if (validInDictionary)
         {
             var validOfPrompt = _wordChecker.CheckWordPromptValidity(inputField.text, _currentPrompt);
@@ -348,8 +351,9 @@ public class Client : NetworkBehaviour
         {
             this.hintText.text = hintText;
         }
-        
+
         ChangeLetterCountServerRpc(0);
+
         if (!keepInput)
         {
             ClearInputField();
@@ -359,39 +363,27 @@ public class Client : NetworkBehaviour
         }
     }
 
+    #endregion
+
+    #region ===== Used Words Sync =====
+
     [Rpc(SendTo.Server)]
     private void MarkUsedWordsServerRpc(string word)
     {
         usedWords.Add(word.ToLower());
-
-        // 序列化列表成一个 string
         string packed = string.Join("|", usedWords);
-
-        // 发给所有客户端
         UpdateUsedWordsClientRpc(packed);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdateUsedWordsClientRpc(string packedWords)
     {
-        // 解包成数组或 list
         usedWords = packedWords.Split('|').ToList();
     }
 
-    // private bool Check()
-    // {
-    //     if (_wordChecker.CheckWordPromptValidity(inputField.text, _currentPrompt))
-    //     {
-    //         Debug.Log("Word is valid and valid for prompt");
-    //         return true;
-    //     }
-    //
-    //     return false;
-    // }
-
     #endregion
 
-    #region ===== Text Sync (Shared Input Field) =====
+    #region ===== Shared Input Field Sync =====
 
     private void OnLocalInputChanged(string newValue)
     {
@@ -426,6 +418,7 @@ public class Client : NetworkBehaviour
                 inputField.text = value;
             }
         }
+
         UpdateLetterCountUI(sharedText.Length);
     }
 
