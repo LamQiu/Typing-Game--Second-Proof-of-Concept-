@@ -202,7 +202,6 @@ public class RoundManager : NetworkBehaviour
         Debug.Log("Round Ended!");
 
         _currentRound = Mathf.Clamp(_currentRound + 1, 0, roundTimes.Length - 1);
-        _timeScaleMultiplier = 1f;
 
         roundTimeLimitInSeconds = roundTimes[_currentRound];
         RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
@@ -370,6 +369,7 @@ public class RoundManager : NetworkBehaviour
         resolutionBGImage.gameObject.SetActive(false);
         timeMultiplierText.text = defaultTimeScaleMultiplier.ToString("F1") + "x";
         _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
+        _timeScaleMultiplier = 1f;
         //hostTimerImage.gameObject.SetActive(true);
         //clientTimerImage.gameObject.SetActive(true);
 
