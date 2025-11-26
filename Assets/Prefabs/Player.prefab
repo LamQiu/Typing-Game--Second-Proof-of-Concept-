@@ -1319,8 +1319,8 @@ MonoBehaviour:
   letterCountText: {fileID: 5117014362434018129}
   letterCountIndicator: {fileID: 8059209655039864512}
   letterCountIndicatorBG: {fileID: 7303435567423057303}
-  letterCountIndicatorBGOffsetHost: {x: 280, y: 150, z: 0}
-  letterCountIndicatorBGOffsetClient: {x: -280, y: 150, z: 0}
+  letterCountIndicatorBGOffsetHost: {x: -280, y: 150, z: 0}
+  letterCountIndicatorBGOffsetClient: {x: 280, y: 150, z: 0}
   prompt: {fileID: 8061017998109527277}
   healthBar: {fileID: 4428688381671030505}
   hintText: {fileID: 302466477821487335}
