@@ -388,6 +388,7 @@ public class RoundManager : NetworkBehaviour
     private void EndGameClientRpc(string playerID)
     {
         winImage.SetActive(true);
+        timeMultiplierText.text = "";
         winText.text = playerID + " Wins";
     }
     // ============================================================
