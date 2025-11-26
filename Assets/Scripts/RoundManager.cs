@@ -12,23 +12,30 @@ public class RoundManager : NetworkBehaviour
     // Public Inspector Variables
     // ----------------------------
     public float[] roundTimes;
-    public float roundTime = 15f;
-    public float resoluteTime = 5f;
+    public float roundTimeLimitInSeconds = 15f;
+    public float RoundTimeLimitInSeconds => roundTimeLimitInSeconds;
+    public float resoluteTimeInSeconds = 5f;
 
     public Image hostTimerImage;
     public Image clientTimerImage;
 
     public TMP_Text resolutionText;
-    public Image resolutionImage;
+    public Image resolutionBGImage;
     public TMP_Text winText;
     public GameObject winImage;
     public GameObject titleImage;
+    public float defaultTimeScaleMultiplier = 1f;
+
+    public TMP_Text timeMultiplierText;
 
     // ----------------------------
     // Networked Variables
     // ----------------------------
     public NetworkVariable<bool> IsResolutionPhase = new NetworkVariable<bool>();
-    [HideInInspector] public NetworkVariable<float> TimeRemaining = new NetworkVariable<float>();
+    public NetworkVariable<float> RoundTimeRemainingInSeconds = new NetworkVariable<float>();
+    private float _localRoundTimeRemainingInSeconds;
+    public float LocalRoundTimeRemainingInSeconds => _localRoundTimeRemainingInSeconds;
+    private float _timeScaleMultiplier;
     [HideInInspector] public NetworkVariable<float> ResolutionTimeRemaining = new NetworkVariable<float>();
 
     // ----------------------------
@@ -48,12 +55,14 @@ public class RoundManager : NetworkBehaviour
     // ============================================================
     public void ResetRoundManager()
     {
+        _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
+
         if (IsServer)
         {
             // Reset timers
-            roundTime = roundTimes.Length > 0 ? roundTimes[0] : 15f;
-            TimeRemaining.Value = roundTime;
-            ResolutionTimeRemaining.Value = resoluteTime;
+            roundTimeLimitInSeconds = roundTimes.Length > 0 ? roundTimes[0] : 15f;
+            RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
+            ResolutionTimeRemaining.Value = resoluteTimeInSeconds;
 
             // Reset networked state
             IsResolutionPhase.Value = false;
@@ -65,19 +74,23 @@ public class RoundManager : NetworkBehaviour
         _startResolute = false;
 
         _currentRound = -1;
+        _timeScaleMultiplier = 1f;
 
         submittedAnswerClients.Clear();
         confirmedResolutionClients.Clear();
 
         // Reset UI elements
-        resolutionImage.gameObject.SetActive(false);
+        resolutionBGImage.gameObject.SetActive(false);
         resolutionText.text = "";
+
+        timeMultiplierText.text = "";
 
         winImage.SetActive(false);
         winText.text = "";
 
-        hostTimerImage.gameObject.SetActive(false);
-        clientTimerImage.gameObject.SetActive(false);
+        // TODO: Replace theses with client handling ui
+        // hostTimerImage.gameObject.SetActive(false);
+        // clientTimerImage.gameObject.SetActive(false);
 
         titleImage.gameObject.SetActive(true);
 
@@ -94,18 +107,20 @@ public class RoundManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        ResetRoundManager();
+
         if (FindAnyObjectByType<GameManager>() is GameManager gm)
         {
             gm.GameStartedState.OnValueChanged += OnGameStartedStateChanged;
         }
 
-        TimeRemaining.OnValueChanged += OnTimeChanged;
+        RoundTimeRemainingInSeconds.OnValueChanged += OnTimeRemainingChanged;
         titleImage.gameObject.SetActive(false);
     }
 
     public override void OnDestroy()
     {
-        TimeRemaining.OnValueChanged -= OnTimeChanged;
+        RoundTimeRemainingInSeconds.OnValueChanged -= OnTimeRemainingChanged;
     }
 
 
@@ -115,8 +130,6 @@ public class RoundManager : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer || !_started) return;
-
         if (IsResolutionPhase.Value)
         {
             HandleResolutionPhase();
@@ -133,15 +146,21 @@ public class RoundManager : NetworkBehaviour
 
     private void HandleRoundPhase()
     {
+        if (!_started) return;
+        
+        _localRoundTimeRemainingInSeconds -= Time.deltaTime * _timeScaleMultiplier;
+        
+        if (!IsServer ) return;
+
         if (!_promptGenerated)
         {
             GeneratePrompt();
             _promptGenerated = true;
         }
 
-        TimeRemaining.Value -= Time.deltaTime;
+        RoundTimeRemainingInSeconds.Value -= Time.deltaTime * _timeScaleMultiplier;
 
-        if (TimeRemaining.Value <= 0)
+        if (RoundTimeRemainingInSeconds.Value < 0)
         {
             OnRoundTimeOutClientRpc();
             EnterResolutionPhase();
@@ -150,10 +169,12 @@ public class RoundManager : NetworkBehaviour
 
     private void HandleResolutionPhase()
     {
+        if (!IsServer || !_started) return;
+
         if (_startResolute)
         {
             _startResolute = false;
-            ResolutionTimeRemaining.Value = resoluteTime;
+            ResolutionTimeRemaining.Value = resoluteTimeInSeconds;
             StartCoroutine(DelayResolve());
         }
 
@@ -181,9 +202,10 @@ public class RoundManager : NetworkBehaviour
         Debug.Log("Round Ended!");
 
         _currentRound = Mathf.Clamp(_currentRound + 1, 0, roundTimes.Length - 1);
+        _timeScaleMultiplier = 1f;
 
-        roundTime = roundTimes[_currentRound];
-        TimeRemaining.Value = roundTime;
+        roundTimeLimitInSeconds = roundTimes[_currentRound];
+        RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
 
         EnterNextRoundClientRpc();
     }
@@ -245,13 +267,25 @@ public class RoundManager : NetworkBehaviour
     // ============================================================
 
     [Rpc(SendTo.Server)]
-    public void SubmitAnswerServerRpc(ulong clientId)
+    public void SubmitAnswerServerRpc(ulong clientId, float timeScaleMultiplier)
     {
         if (!submittedAnswerClients.Contains(clientId))
+        {
             submittedAnswerClients.Add(clientId);
+            _timeScaleMultiplier = timeScaleMultiplier;
+        }
 
         if (submittedAnswerClients.Count >= 2)
             EnterResolutionPhase();
+
+        OnSubmitAnswerClientRpc(_timeScaleMultiplier);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
+    {
+        _timeScaleMultiplier = timeScaleMultiplier;
+        timeMultiplierText.text = timeScaleMultiplier.ToString("F1") + "x";
     }
 
     [Rpc(SendTo.Server)]
@@ -293,7 +327,7 @@ public class RoundManager : NetworkBehaviour
 
             string comparison = difference > 0 ? ">" : difference < 0 ? "<" : "=";
 
-            text = $"P1 Letter Count {hostScore}    {comparison}    P2 Letter Count {clientScore}";
+            text = $"Letter Count {hostScore}  <size=300%>{comparison}</size>  Letter Count {clientScore}";
 
             if (difference > 0)
                 pm.GetClient(1).Health.Value -= difference;
@@ -333,9 +367,11 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterNextRoundClientRpc()
     {
-        resolutionImage.gameObject.SetActive(false);
-        hostTimerImage.gameObject.SetActive(true);
-        clientTimerImage.gameObject.SetActive(true);
+        resolutionBGImage.gameObject.SetActive(false);
+        timeMultiplierText.text = defaultTimeScaleMultiplier.ToString("F1") + "x";
+        _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
+        //hostTimerImage.gameObject.SetActive(true);
+        //clientTimerImage.gameObject.SetActive(true);
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterNextRound();
@@ -344,7 +380,7 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdateResolutionTextClientRpc(string text)
     {
-        resolutionImage.gameObject.SetActive(true);
+        resolutionBGImage.gameObject.SetActive(true);
         resolutionText.text = text;
     }
 
@@ -358,12 +394,12 @@ public class RoundManager : NetworkBehaviour
     // UI Updates
     // ============================================================
 
-    private void OnTimeChanged(float oldValue, float newValue)
+    private void OnTimeRemainingChanged(float oldValue, float newValue)
     {
-        if (hostTimerImage != null)
-            hostTimerImage.fillAmount = newValue / roundTime;
-
-        if (clientTimerImage != null)
-            clientTimerImage.fillAmount = newValue / roundTime;
+        // if (hostTimerImage != null)
+        //     hostTimerImage.fillAmount = newValue / roundTimeLimitInSeconds;
+        //
+        // if (clientTimerImage != null)
+        //     clientTimerImage.fillAmount = newValue / roundTimeLimitInSeconds;
     }
 }
