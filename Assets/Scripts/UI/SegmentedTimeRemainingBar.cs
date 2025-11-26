@@ -32,7 +32,7 @@ public class SegmentedTimeRemainingBar : MonoBehaviour
             img.color = segmentData[i].segmentColor;
             var timeMultiplierIconImg =
                 Instantiate(segmentBarTimeMultiplierIconPrefab, img.transform).GetComponent<Image>();
-            timeMultiplierIconImg.color = segmentData[i].segmentColor;
+            timeMultiplierIconImg.sprite = segmentData[i].timeScaleMultiplierSprite;
             if (!reverseArrangement)
             {
                 timeMultiplierIconImg.transform.localScale = new Vector3(-timeMultiplierIconImg.transform.localScale.x,
