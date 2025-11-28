@@ -274,6 +274,11 @@ public class RoundManager : NetworkBehaviour
             _timeScaleMultiplier = timeScaleMultiplier;
         }
 
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySubmitSfxServerRpc();
+        }
+
         if (submittedAnswerClients.Count >= 2)
             EnterResolutionPhase();
 
@@ -295,6 +300,11 @@ public class RoundManager : NetworkBehaviour
 
         PlayerManager.Instance.GetHost().UpdateConfirmClientRpc(clientId);
         PlayerManager.Instance.GetClient(1).UpdateConfirmClientRpc(clientId);
+
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlaySubmitSfxServerRpc();
+        }
 
         if (confirmedResolutionClients.Count >= 2)
             EndResolutionPhase();
@@ -352,6 +362,11 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterResolutionPhaseClientRpc()
     {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopBgm();
+        }
+
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterResolutionPhase();
     }
@@ -366,6 +381,11 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterNextRoundClientRpc()
     {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayGameBgm();
+        }
+
         resolutionBGImage.gameObject.SetActive(false);
         timeMultiplierText.text = defaultTimeScaleMultiplier.ToString("F1") + "x";
         _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;

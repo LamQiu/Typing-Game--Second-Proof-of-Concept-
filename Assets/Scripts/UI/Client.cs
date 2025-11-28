@@ -416,6 +416,10 @@ public class Client : NetworkBehaviour
 
     private void OnLocalInputChanged(string value)
     {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayTypingSfx();
+        }
         SubmitAnswerDisplayServerRpc(value);
     }
 
