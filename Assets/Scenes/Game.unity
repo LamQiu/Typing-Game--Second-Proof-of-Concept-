@@ -1244,9 +1244,9 @@ MonoBehaviour:
   roundTimes:
   - 15
   roundTimeLimitInSeconds: 15
+  banLetterPerRound: 1
+  submittedAnswers: []
   resoluteTimeInSeconds: 5
-  hostTimerImage: {fileID: 1946142661}
-  clientTimerImage: {fileID: 232240044}
   resolutionText: {fileID: 1702441907}
   resolutionBGImage: {fileID: 941494707}
   winText: {fileID: 353913667}
@@ -2895,6 +2895,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1106643271}
   - {fileID: 1785830795}
   - {fileID: 93836314}
   - {fileID: 437586344}
@@ -3077,12 +3078,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PromptGenerator
   ShowTopMostFoldoutHeaderGroup: 1
-  randomize: 1
+  randomize: 0
   prompts:
   - type: 1
     content: 13
-  - type: 1
-    content: 1
   - type: 2
     content: 15
   usedPrompts: []
@@ -3098,12 +3097,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1106643268}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.34392, y: 0.20923, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 993463994}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1264837641
 GameObject:
@@ -5679,7 +5678,6 @@ SceneRoots:
   - {fileID: 1736860910}
   - {fileID: 185409342}
   - {fileID: 579844750}
-  - {fileID: 1106643271}
   - {fileID: 43585157}
   - {fileID: 993463994}
   - {fileID: 264052030}

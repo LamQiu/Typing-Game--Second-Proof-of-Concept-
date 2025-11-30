@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -194,6 +195,81 @@ public class Client : NetworkBehaviour
     {
         UpdateLetterCountIndicator(value);
     }
+    private bool _ignoreInputChange = false;
+    private void UpdateInputFieldText(string text)
+    {
+        _ignoreInputChange = true;
+
+        string result = "";
+
+        foreach (char c in text)
+        {
+            if (_bannedLetters != null && _bannedLetters.Contains(char.ToLower(c)))
+            {
+                result += $"<color=#FFFFFF40>{c}</color>";
+            }
+            else
+            {
+                result += c;
+            }
+        }
+
+        answerAreaText.text = result;
+
+        _ignoreInputChange = false;
+    }
+
+
+    private int GetValidLetterCount(string text)
+    {
+        if(_bannedLetters == null) return text.Length;
+        
+        int count = 0;
+
+        foreach (char c in text)
+        {
+            // 只统计字母，并且没被 ban
+            if (char.IsLetter(c) && !_bannedLetters.Contains(char.ToLower(c)))
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+    private string GetNonTransparentString(string richText)
+    {
+        string result = "";
+        bool insideColorTag = false;
+
+        for (int i = 0; i < richText.Length; i++)
+        {
+            char c = richText[i];
+
+            // 检测是否进入标签 <color=...>
+            if (c == '<')
+            {
+                insideColorTag = true;
+                continue;
+            }
+
+            // 检测是否退出标签 </color>
+            if (c == '>' && insideColorTag)
+            {
+                insideColorTag = false;
+                continue;
+            }
+
+            // 如果在标签里面（透明字符），跳过
+            if (insideColorTag)
+                continue;
+
+            // 平常字符（未透明）加入结果
+            result += c;
+        }
+
+        return result;
+    }
 
     private void UpdateInputFieldInteractability(bool interactable)
     {
@@ -254,8 +330,10 @@ public class Client : NetworkBehaviour
             SubmitAnswerDisplayServerRpc(answerAreaText.text);
     }
 
-    public void OnEndResolutionPhase()
+    private char[] _bannedLetters;
+    public void OnEndResolutionPhase(List<char> bannedLetters)
     {
+        _bannedLetters = bannedLetters.ToArray();
         UpdateInputFieldInteractability(true);
         ClearInputField();
         _isResoluting = false;
@@ -342,25 +420,26 @@ public class Client : NetworkBehaviour
         if (!IsOwner || _checkValid) return;
 
         string hint = "";
-        string input = answerAreaText.text;
-        bool validDict = _wordChecker.CheckWordDictionaryValidity(input);
+        string rawAnswer = answerAreaText.text;
+        string answer = GetNonTransparentString(rawAnswer);
+        bool validDict = _wordChecker.CheckWordDictionaryValidity(answer);
 
         if (validDict)
         {
-            bool validPrompt = _wordChecker.CheckWordPromptValidity(input, _currentPrompt);
+            bool validPrompt = _wordChecker.CheckWordPromptValidity(answer, _currentPrompt);
             if (validPrompt)
             {
-                if (usedWords.Contains(input.ToLower()))
+                if (usedWords.Contains(answer.ToLower()))
                 {
                     hint = "Word already used";
                 }
                 else
                 {
-                    ChangeLetterCountServerRpc(input.Length);
-                    hint = $"Valid Word \"{input}\" Submitted";
+                    ChangeLetterCountServerRpc(GetValidLetterCount(answer));
+                    hint = $"\"{answer}\" Submitted";
 
-                    MarkUsedWordsServerRpc(input);
-                    _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[timeRemainingSegmentedBar.CurrentSegmentIndex].timeScaleMultiplier);
+                    MarkUsedWordsServerRpc(answer);
+                    _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[timeRemainingSegmentedBar.CurrentSegmentIndex].timeScaleMultiplier, answer);
 
                     answerAreaText.interactable = false;
                     _checkValid = true;
@@ -371,12 +450,12 @@ public class Client : NetworkBehaviour
             }
             else
             {
-                hint = $"Word {input} doesn't meet criteria. Try Again";
+                hint = $"Word {answer} doesn't meet criteria. Try Again";
             }
         }
         else
         {
-            hint = $"Invalid word {input}. Try Again";
+            hint = $"Invalid word {rawAnswer}. Try Again";
         }
 
         if (updateHint) this.hintText.text = hint;
@@ -416,11 +495,20 @@ public class Client : NetworkBehaviour
 
     private void OnLocalInputChanged(string value)
     {
+        if (_ignoreInputChange) return;  // ★阻止循环★
+
         if (SoundManager.Instance != null)
-        {
             SoundManager.Instance.PlayTypingSfx();
-        }
+
+        UpdateInputFieldText(value);
         SubmitAnswerDisplayServerRpc(value);
+        StartCoroutine(FixCaret());
+    }
+
+    private IEnumerator FixCaret()
+    {
+        yield return null; // 等待一帧让 TMP 重新排版
+        answerAreaText.MoveTextEnd(false);
     }
 
     [ServerRpc]
@@ -437,14 +525,19 @@ public class Client : NetworkBehaviour
 
         if (answerAreaText != null && !IsOwner)
         {
+            _ignoreInputChange = true;
+
             if (_isAnswering)
-                answerAreaText.text = new string('*', value.Length);
+                answerAreaText.text = new string('*', GetValidLetterCount(value));
             else
                 answerAreaText.text = value;
+
+            _ignoreInputChange = false;
         }
 
         UpdateLetterCountUI(sharedText.Length);
     }
+
 
     #endregion
 
