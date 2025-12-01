@@ -405,7 +405,7 @@ public class Client : NetworkBehaviour
             else
             {
                 Debug.Log("SubmitAnswerServerRpc at segment: " + timeRemainingSegmentedBar.CurrentSegmentIndex + "");
-                Check(keepInput:true);
+                Check(keepInput:false);
             }
         }
 
@@ -454,6 +454,7 @@ public class Client : NetworkBehaviour
 
                     answerAreaText.interactable = false;
                     _checkValid = true;
+                    return;
                 }
             }
             else
