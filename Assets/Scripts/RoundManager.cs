@@ -26,6 +26,8 @@ public class RoundManager : NetworkBehaviour
     public TMP_Text winText;
     public GameObject winImage;
     public GameObject titleImage;
+    public GameObject banLetterBG;
+    public TMP_Text bannedLettersText;
     public float defaultTimeScaleMultiplier = 1f;
 
     public TMP_Text timeMultiplierText;
@@ -108,6 +110,8 @@ public class RoundManager : NetworkBehaviour
         resolutionText.text = "";
         timeMultiplierText.text = "";
         submittedAnswers.Clear();
+        banLetterBG.gameObject.SetActive(false);
+        bannedLettersText.text = "";
 
         winImage.SetActive(false);
         winText.text = "";
@@ -234,6 +238,7 @@ public class RoundManager : NetworkBehaviour
             _started = true;
             winImage.SetActive(false);
             titleImage.gameObject.SetActive(false);
+            banLetterBG.gameObject.SetActive(true);
 
             if (IsServer)
                 StartCoroutine(DelayEnterNextRound());
@@ -280,10 +285,11 @@ public class RoundManager : NetworkBehaviour
             .SelectMany(s => s.ToCharArray())
             .Where(char.IsLetter)
             .GroupBy(c => c)
-            .OrderByDescending(g => g.Count()) // 降序排列
+            .OrderByDescending(g => g.Count())
             .ToList();
 
         char selectedLetter = '\0';
+        submittedAnswers.Clear();
 
         foreach (var group in letterFrequencies)
         {
@@ -303,10 +309,24 @@ public class RoundManager : NetworkBehaviour
         else
         {
             _bannedLetters.Add(selectedLetter);
+            UpdateBannedLettersTextClientRpc(selectedLetter);
             Debug.Log($"Banned letter {selectedLetter}");
         }
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void UpdateBannedLettersTextClientRpc(char bannedLetter)
+    {
+        var letter = bannedLetter.ToString().ToUpper();
+        if (bannedLettersText.text != "")
+        {
+            bannedLettersText.text += "\n" + letter;
+        }
+        else
+        {
+            bannedLettersText.text += letter;
+        }
+    }
     [Rpc(SendTo.ClientsAndHost)]
     private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
     {
