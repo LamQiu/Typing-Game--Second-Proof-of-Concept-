@@ -61,21 +61,26 @@ public class GameManager : NetworkBehaviour
         {
             //StartCoroutine(RestartGame());
             StartCoroutine(GameRestart());
-            
-            var roundManager = FindAnyObjectByType<RoundManager>();
-            if (roundManager)
-            {
-                roundManager.ResetRoundManager();
-            }
 
-            var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
-            foreach (var client in clients)
-            {
-                client.ResetClient();
-            }
+            ResetClientRpc();
             
             Debug.Log("Game Reset!");
 
+        }
+    }
+    [Rpc(SendTo.ClientsAndHost)]
+    private void ResetClientRpc()
+    {
+        var roundManager = FindAnyObjectByType<RoundManager>();
+        if (roundManager)
+        {
+            roundManager.ResetRoundManager();
+        }
+
+        var clients = FindObjectsByType<Client>(FindObjectsSortMode.InstanceID);
+        foreach (var client in clients)
+        {
+            client.ResetClient();
         }
     }
 

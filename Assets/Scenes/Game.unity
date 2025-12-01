@@ -1452,7 +1452,7 @@ MonoBehaviour:
   roundTimes:
   - 15
   roundTimeLimitInSeconds: 15
-  banLetterPerRound: 3
+  banLetterPerRound: 1
   submittedAnswers: []
   resoluteTimeInSeconds: 5
   resolutionText: {fileID: 1702441907}
