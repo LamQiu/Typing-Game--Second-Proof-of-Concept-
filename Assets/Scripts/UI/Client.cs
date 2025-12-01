@@ -455,7 +455,8 @@ public class Client : NetworkBehaviour
                     answerAreaText.interactable = false;
                     _checkValid = true;
                     
-                    this.hintText.text = hint;
+                    if(updateHint)
+                        this.hintText.text = hint;
                     return;
                 }
             }
