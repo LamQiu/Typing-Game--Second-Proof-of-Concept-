@@ -81,7 +81,6 @@ public class PromptGenerator : NetworkBehaviour
         C,
         D,
         E,
-        F,
         G,
         H,
         I,
@@ -94,7 +93,6 @@ public class PromptGenerator : NetworkBehaviour
         R,
         S,
         T,
-        W,
         Y,
         ER
     }
