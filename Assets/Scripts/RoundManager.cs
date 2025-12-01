@@ -112,6 +112,7 @@ public class RoundManager : NetworkBehaviour
         resolutionBGImage.gameObject.SetActive(false);
         resolutionText.text = "";
         timeMultiplierText.text = "";
+        timeMultiplierText.gameObject.SetActive(true);
         timeMultiplierIndicatorImage.gameObject.SetActive(false);
         timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[0];
         submittedAnswers.Clear();
@@ -244,6 +245,7 @@ public class RoundManager : NetworkBehaviour
             winImage.SetActive(false);
             titleImage.gameObject.SetActive(false);
             banLetterBG.gameObject.SetActive(true);
+            timeMultiplierText.gameObject.SetActive(false);
 
             if (IsServer)
                 StartCoroutine(DelayEnterNextRound());
