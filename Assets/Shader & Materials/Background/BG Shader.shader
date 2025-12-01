@@ -2,6 +2,8 @@ Shader "Custom/BG"
 {
     Properties
     {
+        _MainTex ("Main Texture", 2D) = "white" {}
+
         _Colour1 ("Color 1", Color) = (1,0,0,1)
         _Colour2 ("Color 2", Color) = (0,0,1,1)
         _Colour3 ("Color 3", Color) = (0,0,0,1)
@@ -24,7 +26,10 @@ Shader "Custom/BG"
 
     SubShader
     {
-        Tags { "RenderPipeline"="UniversalPipeline" "Queue"="Transparent" }
+        Tags
+        {
+            "RenderPipeline"="UniversalPipeline" "Queue"="Transparent"
+        }
 
         Pass
         {
@@ -45,7 +50,7 @@ Shader "Custom/BG"
                 float2 uv : TEXCOORD0;
             };
 
-            Varyings vert (Attributes IN)
+            Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
@@ -120,7 +125,6 @@ Shader "Custom/BG"
 
                 return float4(ret_col, 1.0);
             }
-
             ENDHLSL
         }
     }

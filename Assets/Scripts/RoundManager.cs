@@ -123,6 +123,9 @@ public class RoundManager : NetworkBehaviour
         winText.text = "";
         titleImage.gameObject.SetActive(true);
 
+        _usedWords.Clear();
+        FindAnyObjectByType<PromptGenerator>().UsesPrompts.Clear();
+
         Debug.Log("RoundManager has been reset.");
     }
 
@@ -241,11 +244,10 @@ public class RoundManager : NetworkBehaviour
     {
         if (start)
         {
-            _started = true;
             winImage.SetActive(false);
             titleImage.gameObject.SetActive(false);
             banLetterBG.gameObject.SetActive(true);
-            timeMultiplierText.gameObject.SetActive(false);
+            _started = true;
 
             if (IsServer)
                 StartCoroutine(DelayEnterNextRound());
@@ -334,6 +336,7 @@ public class RoundManager : NetworkBehaviour
             bannedLettersText.text += letter;
         }
     }
+
     [Rpc(SendTo.ClientsAndHost)]
     private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
     {
@@ -409,7 +412,7 @@ public class RoundManager : NetworkBehaviour
             if (IsServer)
                 BanLetter();
         }
-        
+
         UpdateResolutionTextClientRpc(text);
     }
 
@@ -470,6 +473,8 @@ public class RoundManager : NetworkBehaviour
     private void EndGameClientRpc(string playerID)
     {
         winImage.SetActive(true);
+        timeMultiplierText.text = "";
+        //timeMultiplierText.gameObject.SetActive(false);
         banLetterBG.gameObject.SetActive(false);
         timeMultiplierText.text = "";
         timeMultiplierIndicatorImage.gameObject.SetActive(false);
@@ -486,6 +491,7 @@ public class RoundManager : NetworkBehaviour
 
     private List<string> _usedWords = new List<string>();
     public List<string> UsedWords => _usedWords;
+
     [Rpc(SendTo.Server)]
     public void MarkUsedWordServerRpc(string word)
     {
@@ -502,5 +508,4 @@ public class RoundManager : NetworkBehaviour
     {
         _usedWords = packedWords.Split(',').ToList();
     }
-    
 }

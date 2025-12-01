@@ -1452,7 +1452,7 @@ MonoBehaviour:
   roundTimes:
   - 15
   roundTimeLimitInSeconds: 15
-  banLetterPerRound: 2
+  banLetterPerRound: 1
   submittedAnswers: []
   resoluteTimeInSeconds: 5
   resolutionText: {fileID: 1702441907}
@@ -3701,7 +3701,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PromptGenerator
   ShowTopMostFoldoutHeaderGroup: 1
-  randomize: 0
+  randomize: 1
   prompts:
   - type: 1
     content: 13

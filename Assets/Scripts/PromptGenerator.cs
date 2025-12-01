@@ -9,6 +9,7 @@ public class PromptGenerator : NetworkBehaviour
 {
     public bool randomize;
     [SerializeField] private Prompt[] prompts;
+    public List<Prompt> UsesPrompts {get => usedPrompts; set => usedPrompts = value;}
     [SerializeField] private List<Prompt> usedPrompts = new List<Prompt>();
     public NetworkVariable<Prompt> CurrentPrompt = new NetworkVariable<Prompt>();
 

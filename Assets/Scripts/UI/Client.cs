@@ -286,7 +286,7 @@ public class Client : NetworkBehaviour
 
     private void OnTimeRemainingChanged(float prev, float value)
     {
-        // UpdateTimerUI(value);
+        //UpdateTimerUI(value);
     }
 
     private void OnLetterCountChanged(int prev, int value)
