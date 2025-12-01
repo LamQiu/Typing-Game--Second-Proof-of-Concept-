@@ -64,7 +64,6 @@ public class Client : NetworkBehaviour
     private bool _isResoluting;
     private bool _isAnswering;
     private List<string> usedWords = new List<string>();
-
     #endregion
 
     #region ===== Reset Helpers =====
@@ -439,7 +438,7 @@ public class Client : NetworkBehaviour
             bool validPrompt = _wordChecker.CheckWordPromptValidity(answer, _currentPrompt);
             if (validPrompt)
             {
-                if (usedWords.Contains(answer.ToLower()))
+                if (_roundManager.UsedWords != null && _roundManager.UsedWords.Contains(answer.ToLower()))
                 {
                     hint = "Word already used";
                 }
@@ -448,12 +447,15 @@ public class Client : NetworkBehaviour
                     ChangeLetterCountServerRpc(GetValidLetterCount(answer));
                     hint = $"\"{answer}\" Submitted";
 
-                    MarkUsedWordsServerRpc(answer);
-                    Debug.Log($"timeRemainingSegmentedBar CurrentSegmentIndex: {timeRemainingSegmentedBar.CurrentSegmentIndex}");
-                    _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[timeRemainingSegmentedBar.CurrentSegmentIndex].timeScaleMultiplier, answer);
+                    MarkUsedWord(answer.ToLower());
+                    var index = timeRemainingSegmentedBar.CurrentSegmentIndex;
+                    if(timeRemainingSegmentedBar.CurrentSegmentIndex < 0) index = 0;
+                    _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[index].timeScaleMultiplier, answer);
 
                     answerAreaText.interactable = false;
                     _checkValid = true;
+                    
+                    this.hintText.text = hint;
                     return;
                 }
             }
@@ -487,19 +489,9 @@ public class Client : NetworkBehaviour
     #endregion
 
     #region ===== Used Words Sync =====
-
-    [Rpc(SendTo.Server)]
-    private void MarkUsedWordsServerRpc(string word)
+    private void MarkUsedWord(string word)
     {
-        usedWords.Add(word.ToLower());
-        string packed = string.Join("|", usedWords);
-        UpdateUsedWordsClientRpc(packed);
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void UpdateUsedWordsClientRpc(string packedWords)
-    {
-        usedWords = packedWords.Split('|').ToList();
+        _roundManager.MarkUsedWordServerRpc(word);
     }
 
     #endregion

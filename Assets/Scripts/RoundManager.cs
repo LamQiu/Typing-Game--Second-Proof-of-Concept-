@@ -31,6 +31,9 @@ public class RoundManager : NetworkBehaviour
     public float defaultTimeScaleMultiplier = 1f;
 
     public TMP_Text timeMultiplierText;
+    public Image timeMultiplierIndicatorImage;
+    public Sprite[] timeMultiplierIndicatorSprites;
+
 
     // ============================================================
     // Network Variables
@@ -109,6 +112,8 @@ public class RoundManager : NetworkBehaviour
         resolutionBGImage.gameObject.SetActive(false);
         resolutionText.text = "";
         timeMultiplierText.text = "";
+        timeMultiplierIndicatorImage.gameObject.SetActive(false);
+        timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[0];
         submittedAnswers.Clear();
         banLetterBG.gameObject.SetActive(false);
         bannedLettersText.text = "";
@@ -332,6 +337,18 @@ public class RoundManager : NetworkBehaviour
     {
         _timeScaleMultiplier = timeScaleMultiplier;
         timeMultiplierText.text = timeScaleMultiplier.ToString("F1") + "x";
+        if (timeScaleMultiplier == 1.0)
+        {
+            timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[0];
+        }
+        else if (timeScaleMultiplier == 2.0)
+        {
+            timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[1];
+        }
+        else if (timeScaleMultiplier == 3.0)
+        {
+            timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[2];
+        }
     }
 
     [Rpc(SendTo.Server)]
@@ -390,7 +407,7 @@ public class RoundManager : NetworkBehaviour
             if (IsServer)
                 BanLetter();
         }
-
+        
         UpdateResolutionTextClientRpc(text);
     }
 
@@ -408,6 +425,8 @@ public class RoundManager : NetworkBehaviour
     private void EnterResolutionPhaseClientRpc()
     {
         SoundManager.Instance?.StopBgm();
+        timeMultiplierIndicatorImage.gameObject.SetActive(false);
+        timeMultiplierText.text = "";
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterResolutionPhase();
@@ -426,6 +445,9 @@ public class RoundManager : NetworkBehaviour
         SoundManager.Instance?.PlayGameBgm();
 
         resolutionBGImage.gameObject.SetActive(false);
+        timeMultiplierText.text = "1.0x";
+        timeMultiplierIndicatorImage.gameObject.SetActive(true);
+        timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[0];
 
         timeMultiplierText.text = defaultTimeScaleMultiplier.ToString("F1") + "x";
         _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
@@ -446,7 +468,9 @@ public class RoundManager : NetworkBehaviour
     private void EndGameClientRpc(string playerID)
     {
         winImage.SetActive(true);
+        banLetterBG.gameObject.SetActive(false);
         timeMultiplierText.text = "";
+        timeMultiplierIndicatorImage.gameObject.SetActive(false);
         winText.text = playerID + " Wins";
     }
 
@@ -457,4 +481,24 @@ public class RoundManager : NetworkBehaviour
     {
         // Disabled fill updates
     }
+
+    private List<string> _usedWords = new List<string>();
+    public List<string> UsedWords => _usedWords;
+    [Rpc(SendTo.Server)]
+    public void MarkUsedWordServerRpc(string word)
+    {
+        if (!_usedWords.Contains(word))
+        {
+            _usedWords.Add(word);
+            string packedWords = string.Join(",", _usedWords);
+            UpdateUsedWordsClientRpc(packedWords);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void UpdateUsedWordsClientRpc(string packedWords)
+    {
+        _usedWords = packedWords.Split(',').ToList();
+    }
+    
 }
