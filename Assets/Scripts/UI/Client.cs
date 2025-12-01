@@ -522,20 +522,21 @@ public class Client : NetworkBehaviour
     private void UpdateAnswerDisplayClientRpc(string value)
     {
         sharedText = value;
+        var validLength = GetValidLetterCount(GetNonTransparentString(value));
 
         if (answerAreaText != null && !IsOwner)
         {
             _ignoreInputChange = true;
 
             if (_isAnswering)
-                answerAreaText.text = new string('*', GetValidLetterCount(value));
+                answerAreaText.text = new string('*', validLength);
             else
                 answerAreaText.text = value;
 
             _ignoreInputChange = false;
         }
 
-        UpdateLetterCountUI(sharedText.Length);
+        UpdateLetterCountUI(validLength);
     }
 
 
