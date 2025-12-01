@@ -319,6 +319,11 @@ public class Client : NetworkBehaviour
 
     public void OnEnterResolutionPhase()
     {
+        if (!IsOwner)
+        {
+            hintText.gameObject.SetActive(true);
+        }
+        
         worldCanvas.gameObject.SetActive(true);
         UpdateInputFieldInteractability(false);
 
@@ -344,6 +349,11 @@ public class Client : NetworkBehaviour
 
     public void OnEnterNextRound()
     {
+        if (!IsOwner)
+        {
+            hintText.gameObject.SetActive(false);
+        }
+        
         hintText.text = "Press Enter to Submit";
 
         if (IsOwner)
@@ -395,7 +405,7 @@ public class Client : NetworkBehaviour
             else
             {
                 Debug.Log("SubmitAnswerServerRpc at segment: " + timeRemainingSegmentedBar.CurrentSegmentIndex + "");
-                Check();
+                Check(keepInput:true);
             }
         }
 
@@ -439,13 +449,11 @@ public class Client : NetworkBehaviour
                     hint = $"\"{answer}\" Submitted";
 
                     MarkUsedWordsServerRpc(answer);
+                    Debug.Log($"timeRemainingSegmentedBar CurrentSegmentIndex: {timeRemainingSegmentedBar.CurrentSegmentIndex}");
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[timeRemainingSegmentedBar.CurrentSegmentIndex].timeScaleMultiplier, answer);
 
                     answerAreaText.interactable = false;
                     _checkValid = true;
-
-                    Debug.Log(hint);
-                    return;
                 }
             }
             else
@@ -458,7 +466,11 @@ public class Client : NetworkBehaviour
             hint = $"Invalid word {rawAnswer}. Try Again";
         }
 
-        if (updateHint) this.hintText.text = hint;
+        if (updateHint)
+        {
+            this.hintText.text = hint;
+            Debug.Log($"Updated hint: {hint}");
+        }
 
         ChangeLetterCountServerRpc(0);
 
@@ -492,17 +504,18 @@ public class Client : NetworkBehaviour
     #endregion
 
     #region ===== Shared Input Display Sync =====
-
+    private Coroutine _inputDisplaySyncCoroutine;
     private void OnLocalInputChanged(string value)
     {
-        if (_ignoreInputChange) return;  // ★阻止循环★
+        if (_ignoreInputChange) return;
 
         if (SoundManager.Instance != null)
             SoundManager.Instance.PlayTypingSfx();
 
-        UpdateInputFieldText(value);
+        UpdateInputFieldText(GetNonTransparentString(value));
         SubmitAnswerDisplayServerRpc(value);
-        StartCoroutine(FixCaret());
+        if(_inputDisplaySyncCoroutine != null) StopCoroutine(_inputDisplaySyncCoroutine);
+        _inputDisplaySyncCoroutine = StartCoroutine(FixCaret());
     }
 
     private IEnumerator FixCaret()

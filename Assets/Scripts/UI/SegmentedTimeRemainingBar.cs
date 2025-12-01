@@ -56,13 +56,13 @@ public class SegmentedTimeRemainingBar : MonoBehaviour
         int index = -1;
         for (int i = 0; i < segmentTimeBarImages.Length; i++)
         {
-            if (timeRemaining > segmentOrigin[i] && timeRemaining < segmentOrigin[i + 1])
+            if (timeRemaining >= segmentOrigin[i] && timeRemaining < segmentOrigin[i + 1])
             {
                 index = i;
                 break;
             }
         }
-
+        
         _currentSegmentIndex = index;
 
         // 更新 segment 显示
