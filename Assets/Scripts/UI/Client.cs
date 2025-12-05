@@ -75,6 +75,7 @@ public class Client : NetworkBehaviour
         _isAnswering = false;
         sharedText = "";
         usedWords.Clear();
+        _bannedLetters = Array.Empty<char>();
     }
 
     private void ResetUI()
