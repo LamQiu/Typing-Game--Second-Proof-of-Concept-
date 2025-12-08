@@ -27,6 +27,8 @@ public class RoundManager : NetworkBehaviour
     public GameObject winImage;
     public GameObject titleImage;
     public GameObject banLetterBG;
+    public GameObject resolutionBG;
+    public GameObject BG;
     public TMP_Text bannedLettersText;
     public float defaultTimeScaleMultiplier = 1f;
 
@@ -90,7 +92,8 @@ public class RoundManager : NetworkBehaviour
     public void ResetRoundManager()
     {
         _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
-
+        resolutionBG.SetActive(false);
+        BG.SetActive(true);
         if (IsServer)
         {
             roundTimeLimitInSeconds = roundTimes.Length > 0 ? roundTimes[0] : 20f;
@@ -449,6 +452,8 @@ public class RoundManager : NetworkBehaviour
     private void EnterResolutionPhaseClientRpc()
     {
         SoundManager.Instance?.StopBgm();
+        resolutionBG.SetActive(true);
+        BG.SetActive(false);
         timeMultiplierIndicatorImage.gameObject.SetActive(false);
         timeMultiplierText.text = "";
 
@@ -467,6 +472,8 @@ public class RoundManager : NetworkBehaviour
     private void EnterNextRoundClientRpc()
     {
         SoundManager.Instance?.PlayGameBgm();
+        resolutionBG.SetActive(false);
+        BG.SetActive(true);
 
         resolutionBGImage.gameObject.SetActive(false);
         timeMultiplierText.text = "1.0x";

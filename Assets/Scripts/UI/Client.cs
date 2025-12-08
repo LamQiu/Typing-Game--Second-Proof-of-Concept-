@@ -401,7 +401,7 @@ public class Client : NetworkBehaviour
     private void Update()
     {
         worldCanvas.transform.position = WorldCanvasPosition.Value;
-        //UpdateTimerUI(_roundManager.LocalRoundTimeRemainingInSeconds);
+        UpdateTimerUI(_roundManager.LocalRoundTimeRemainingInSeconds);
 
         if (!IsOwner) return;
 
