@@ -86,6 +86,8 @@ public class Client : NetworkBehaviour
 
         playerIndexText.text = "P" + ((int)OwnerClientId + 1);
 
+        UpdateTimerUI(20);
+
         // Host / Client UI difference
         if (OwnerClientId == 0)
         {
@@ -290,7 +292,7 @@ public class Client : NetworkBehaviour
 
     private void OnTimeRemainingChanged(float prev, float value)
     {
-        //UpdateTimerUI(value);
+        UpdateTimerUI(value);
     }
 
     private void OnLetterCountChanged(int prev, int value)
@@ -399,7 +401,7 @@ public class Client : NetworkBehaviour
     private void Update()
     {
         worldCanvas.transform.position = WorldCanvasPosition.Value;
-        UpdateTimerUI(_roundManager.LocalRoundTimeRemainingInSeconds);
+        //UpdateTimerUI(_roundManager.LocalRoundTimeRemainingInSeconds);
 
         if (!IsOwner) return;
 

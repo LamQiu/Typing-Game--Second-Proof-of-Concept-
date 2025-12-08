@@ -13,7 +13,7 @@ public class RoundManager : NetworkBehaviour
     // Inspector Fields
     // ============================================================
     public float[] roundTimes;
-    public float roundTimeLimitInSeconds = 15f;
+    public float roundTimeLimitInSeconds = 20f;
     public int banLetterPerRound = 3;
     private int _currentRoundIndex = 0;
     public List<string> submittedAnswers = new List<string>();
@@ -93,7 +93,7 @@ public class RoundManager : NetworkBehaviour
 
         if (IsServer)
         {
-            roundTimeLimitInSeconds = roundTimes.Length > 0 ? roundTimes[0] : 15f;
+            roundTimeLimitInSeconds = roundTimes.Length > 0 ? roundTimes[0] : 20f;
             RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
             ResolutionTimeRemaining.Value = resoluteTimeInSeconds;
             IsResolutionPhase.Value = false;
@@ -120,6 +120,7 @@ public class RoundManager : NetworkBehaviour
         submittedAnswers.Clear();
         banLetterBG.gameObject.SetActive(false);
         bannedLettersText.text = "";
+        
 
         winImage.SetActive(false);
         winText.text = "";
@@ -151,7 +152,7 @@ public class RoundManager : NetworkBehaviour
     private void HandleRoundPhase()
     {
         if (!_started) return;
-
+        
         _localRoundTimeRemainingInSeconds -= Time.deltaTime * _timeScaleMultiplier;
 
         if (!IsServer) return;
@@ -215,9 +216,10 @@ public class RoundManager : NetworkBehaviour
         // Set Round Time
         _currentRound = Mathf.Clamp(_currentRound + 1, 0, roundTimes.Length - 1);
         roundTimeLimitInSeconds = roundTimes[_currentRound];
-        RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
 
         EnterNextRoundClientRpc();
+        
+        RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
     }
 
     private void EnterResolutionPhase()
@@ -285,11 +287,11 @@ public class RoundManager : NetworkBehaviour
         if (!submittedAnswerClients.Contains(clientId))
         {
             submittedAnswerClients.Add(clientId);
-            _timeScaleMultiplier = timeScaleMultiplier;
         }
 
         if (submittedAnswerClients.Count == 1)
         {
+            _timeScaleMultiplier = timeScaleMultiplier;
             OnSubmitAnswerClientRpc(_timeScaleMultiplier);
         }
 
@@ -473,10 +475,11 @@ public class RoundManager : NetworkBehaviour
 
         timeMultiplierText.text = defaultTimeScaleMultiplier.ToString("F1") + "x";
         _localRoundTimeRemainingInSeconds = roundTimeLimitInSeconds;
-        _timeScaleMultiplier = 1f;
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterNextRound();
+        
+        _timeScaleMultiplier = 1f;
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -504,6 +507,7 @@ public class RoundManager : NetworkBehaviour
     private void OnTimeRemainingChanged(float oldValue, float newValue)
     {
         // Disabled fill updates
+        _localRoundTimeRemainingInSeconds = newValue;
     }
 
     private List<string> _usedWords = new List<string>();
