@@ -20,7 +20,8 @@ public class Client : NetworkBehaviour
 
     public TMP_Text playerIndexText;
     public TMP_InputField answerAreaText;
-
+    private const string k_currentHealthTextFormat = "Current Health: {0}";
+    public TMP_Text currentHealthText;
     public Image letterCountIndicatorImage;
     public Image letterCountIndicatorBGImage;
     public Vector3 letterCountIndicatorBGOffsetHost;
@@ -103,6 +104,8 @@ public class Client : NetworkBehaviour
 
         answerAreaText.text = "";
         answerAreaText.interactable = IsOwner;
+        
+        currentHealthText.text = string.Format(k_currentHealthTextFormat, maxHealth);
 
         healthBarImage.fillAmount = 1f;
 
@@ -303,8 +306,10 @@ public class Client : NetworkBehaviour
             var gm = FindAnyObjectByType<GameManager>();
             if (gm != null)
                 gm.EndGameServerRpc();
+            value = 0;
         }
-
+        
+        currentHealthText.text = string.Format(k_currentHealthTextFormat, value);
         healthBarImage.fillAmount = (float)value / maxHealth;
     }
 
@@ -319,6 +324,8 @@ public class Client : NetworkBehaviour
 
     public void OnEnterResolutionPhase()
     {
+        Debug.Log("Enter Resolution Phase Client");
+        
         if (!IsOwner)
         {
             hintText.gameObject.SetActive(true);
@@ -326,7 +333,7 @@ public class Client : NetworkBehaviour
         
         worldCanvas.gameObject.SetActive(true);
         UpdateInputFieldInteractability(false);
-
+        
         hintText.text = "Press Enter to Continue";
         _isResoluting = true;
         _isAnswering = false;
@@ -451,13 +458,17 @@ public class Client : NetworkBehaviour
                     MarkUsedWord(answer.ToLower());
                     var index = timeRemainingSegmentedBar.CurrentSegmentIndex;
                     if(timeRemainingSegmentedBar.CurrentSegmentIndex < 0) index = 0;
+                    if (updateHint)
+                    {
+                        this.hintText.text = hint;
+                        Debug.Log($"Updated hint: {hint}");
+                    }
+                    
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId, timeScaleMultiplierAtSegmentClient[index].timeScaleMultiplier, answer);
-
                     answerAreaText.interactable = false;
                     _checkValid = true;
+
                     
-                    if(updateHint)
-                        this.hintText.text = hint;
                     return;
                 }
             }

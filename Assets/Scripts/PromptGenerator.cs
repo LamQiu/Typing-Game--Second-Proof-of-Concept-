@@ -8,6 +8,7 @@ using UnityEngine;
 public class PromptGenerator : NetworkBehaviour
 {
     public bool randomize;
+    private PromptType m_lastPromptType = PromptType.None;
     [SerializeField] private Prompt[] prompts;
     public List<Prompt> UsesPrompts {get => usedPrompts; set => usedPrompts = value;}
     [SerializeField] private List<Prompt> usedPrompts = new List<Prompt>();
@@ -50,7 +51,10 @@ public class PromptGenerator : NetworkBehaviour
     {
         var all = System.Enum.GetValues(typeof(PromptType)).Cast<PromptType>().ToList();
         all.Remove(PromptType.None);
-        return all[Random.Range(0, all.Count)];
+        all.Remove(m_lastPromptType);
+        var result = all[Random.Range(0, all.Count)];
+        m_lastPromptType = result;
+        return result;
     }
 
     PromptContent RandomContentExceptNone()
@@ -94,7 +98,11 @@ public class PromptGenerator : NetworkBehaviour
         S,
         T,
         Y,
-        ER
+        ER,
+        ST,
+        OR,
+        IN,
+        AN,
     }
 
     [System.Serializable]

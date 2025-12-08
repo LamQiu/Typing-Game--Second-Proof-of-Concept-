@@ -51,6 +51,7 @@ public class RoundManager : NetworkBehaviour
     // Private State
     // ============================================================
     private bool _started;
+    private bool _ended;
     private bool _promptGenerated;
     private bool _startResolute;
 
@@ -96,9 +97,12 @@ public class RoundManager : NetworkBehaviour
             RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
             ResolutionTimeRemaining.Value = resoluteTimeInSeconds;
             IsResolutionPhase.Value = false;
+            confirmedResolutionClients.Clear();
+            submittedAnswerClients.Clear();
         }
 
         _started = false;
+        _ended = false;
         _promptGenerated = false;
         _startResolute = false;
         _currentRoundIndex = 0; // Real Game Round [1, 2, 3, ...]
@@ -106,8 +110,6 @@ public class RoundManager : NetworkBehaviour
         _timeScaleMultiplier = 1f;
         _bannedLetters.Clear();
 
-        submittedAnswerClients.Clear();
-        confirmedResolutionClients.Clear();
 
         resolutionBGImage.gameObject.SetActive(false);
         resolutionText.text = "";
@@ -197,13 +199,15 @@ public class RoundManager : NetworkBehaviour
 
     private IEnumerator DelayResolve()
     {
-        yield return null;
+        yield return new WaitForSeconds(0.5f);
         ResoluteServerRpc();
     }
 
     private void EnterNextRound()
     {
         Debug.Log("Round Ended!");
+        
+        submittedAnswerClients.Clear();
 
         // Ban Letter
         _currentRoundIndex++;
@@ -227,11 +231,22 @@ public class RoundManager : NetworkBehaviour
 
     private void EndResolutionPhase()
     {
+        Debug.Log("confirmedResolutionClients cleared!");
         confirmedResolutionClients.Clear();
         IsResolutionPhase.Value = false;
 
         _promptGenerated = false;
         UpdateResolutionTextClientRpc("");
+
+        if (_ended)
+        {
+            _ended = false;
+            string winner =
+                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "P2" : "P1";
+
+            EndGameClientRpc(winner);
+            return;
+        }
 
         EnterNextRound();
         EndResolutionPhaseClientRpc(_bannedLetters.ToArray());
@@ -257,10 +272,7 @@ public class RoundManager : NetworkBehaviour
 
         if (!IsServer) return;
 
-        string winner =
-            PlayerManager.Instance.GetHost().Health.Value <= 0 ? "P2" : "P1";
-
-        EndGameClientRpc(winner);
+        _ended = true;
     }
 
     // ============================================================
@@ -276,15 +288,19 @@ public class RoundManager : NetworkBehaviour
             _timeScaleMultiplier = timeScaleMultiplier;
         }
 
+        if (submittedAnswerClients.Count == 1)
+        {
+            OnSubmitAnswerClientRpc(_timeScaleMultiplier);
+        }
+
         // Mark answer in round words list
         submittedAnswers.Add(answer);
 
         SoundManager.Instance?.PlaySubmitSfxServerRpc();
 
+
         if (submittedAnswerClients.Count >= 2)
             EnterResolutionPhase();
-
-        OnSubmitAnswerClientRpc(_timeScaleMultiplier);
     }
 
     private void BanLetter()
@@ -341,6 +357,7 @@ public class RoundManager : NetworkBehaviour
     private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
     {
         _timeScaleMultiplier = timeScaleMultiplier;
+        Debug.Log($"Time Multiplier Text set to 1.0x");
         timeMultiplierText.text = timeScaleMultiplier.ToString("F1") + "x";
         if (timeScaleMultiplier == 1.0)
         {
@@ -423,7 +440,7 @@ public class RoundManager : NetworkBehaviour
     private void OnRoundTimeOutClientRpc()
     {
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
-            c.Check(true);
+            c.Check(true, updateHint: false);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
