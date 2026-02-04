@@ -7,11 +7,14 @@ namespace UI
     {
         [SerializeField] private MainMenuUI MainMenuUI;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
-        
+
         protected override void Awake()
         {
             base.Awake();
-            
+        }
+
+        private void Start()
+        {
             MainMenuUI.Show();
         }
 
@@ -22,8 +25,6 @@ namespace UI
 
         private void Update()
         {
-            
         }
     }
 }
-
