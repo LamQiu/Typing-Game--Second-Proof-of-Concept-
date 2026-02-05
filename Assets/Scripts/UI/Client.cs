@@ -7,6 +7,7 @@ using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
 using TMPro;
+using UI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -178,6 +179,11 @@ public class Client : NetworkBehaviour
         _roundManager.RoundTimeRemainingInSeconds.OnValueChanged += OnTimeRemainingChanged;
 
         ResetClient();
+
+        if (IsHost || IsClient)
+        {
+            UIManager.Instance.Client = this;
+        }
     }
 
     #endregion

@@ -22,16 +22,17 @@ namespace UI
         public void Show()
         {
             gameObject.SetActive(true);
+            CommandInputField.ActivateInputField();
         }
 
         public void Hide()
         {
             gameObject.SetActive(false);
         }
-        
+
         private void OnCommandInputFieldEndEdit(string content)
         {
-            if(content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
+            if (content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
             {
                 UIManager.Instance.EnterConnectionScreen();
             }
@@ -39,10 +40,9 @@ namespace UI
 
         private void Update()
         {
-            if(gameObject.activeSelf)
+            if (gameObject.activeSelf)
             {
                 CommandInputField.Select();
-                CommandInputField.ActivateInputField();
             }
         }
     }
