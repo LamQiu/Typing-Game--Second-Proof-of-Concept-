@@ -11,6 +11,7 @@ namespace UI
         [SerializeField] private ConnectionScreenUI ConnectionScreenUI;
         [SerializeField] private WaitingScreenUI WaitingScreenUI;
         [SerializeField] private GameScreenUI GameScreenUI;
+        [SerializeField] private ResolutionScreenUI ResolutionScreenUI;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
 
         private Client m_client;
@@ -32,6 +33,7 @@ namespace UI
             ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             GameScreenUI.Hide();
+            ResolutionScreenUI.Hide();
         }
 
         public void EnterConnectionScreen()
@@ -49,7 +51,25 @@ namespace UI
         public void EnterGameScreen()
         {
             WaitingScreenUI.Hide();
+            ResolutionScreenUI.Hide();
             GameScreenUI.Show();
+        }
+
+        public void EnterResolutionScreen()
+        {
+            GameScreenUI.Hide();
+            ResolutionScreenUI.Show();
+        }
+
+        #region GameScreen UI
+        
+        public void SetP1()
+        {
+            GameScreenUI.SetP1BG();
+        }
+        public void SetP2()
+        {
+            GameScreenUI.SetP2BG();
         }
 
         public void UpdateP1LettersCountUI(int lettersCount)
@@ -85,6 +105,18 @@ namespace UI
         {
             GameScreenUI.UpdateInvalidLetters(invalidLetters);
         }
+        
+        #endregion
+
+
+        #region ResolutionScreen UI
+
+        public void UpdateResolutionPressSpaceHintText(string content)
+        {
+            ResolutionScreenUI.UpdateResolutionPressSpaceHintText(content);
+        }
+
+        #endregion
 
         private bool m_isGameStarted = false;
 

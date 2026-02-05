@@ -75,6 +75,8 @@ public class Client : NetworkBehaviour
     private List<string> usedWords = new List<string>();
 
     #endregion
+    
+    private Client m_otherClient;
 
     #region ===== Reset Helpers =====
 
@@ -312,6 +314,7 @@ public class Client : NetworkBehaviour
 
     #endregion
 
+
     #region ===== Callbacks =====
 
     private void OnTimeRemainingChanged(float prev, float value)
@@ -326,11 +329,11 @@ public class Client : NetworkBehaviour
         if (IsHost)
         {
             UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value);
-            UIManager.Instance.UpdateP2LettersCountUI(GetOtherClient().LetterCount.Value);
+            UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
         }
         else
         {
-            UIManager.Instance.UpdateP1LettersCountUI(GetOtherClient().LetterCount.Value);
+            UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
             UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
         }
 
@@ -418,6 +421,11 @@ public class Client : NetworkBehaviour
 
     public void OnEnterNextRound()
     {
+        if (m_otherClient == null)
+        {
+            m_otherClient = GetOtherClient();
+        }
+        
         if (!IsOwner)
         {
             hintText.gameObject.SetActive(false);
@@ -431,6 +439,10 @@ public class Client : NetworkBehaviour
             worldCanvas.gameObject.SetActive(true);
             //answerAreaText.Select();
             //answerAreaText.ActivateInputField();
+            if(IsHost)
+                UIManager.Instance.SetP1();
+            else if (IsClient)
+                UIManager.Instance.SetP2();
         }
 
         _checkValid = false;
@@ -466,7 +478,7 @@ public class Client : NetworkBehaviour
 
         if (!IsOwner) return;
 
-        if (Keyboard.current.enterKey.wasPressedThisFrame)
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             if (_roundManager.IsResolutionPhase.Value)
             {

@@ -468,6 +468,9 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterResolutionPhase();
+        
+        UIManager.Instance.EnterResolutionScreen();
+        UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -496,6 +499,8 @@ public class RoundManager : NetworkBehaviour
             c.OnEnterNextRound();
         
         _timeScaleMultiplier = 1f;
+        
+        UIManager.Instance.EnterGameScreen();
     }
 
     [Rpc(SendTo.ClientsAndHost)]

@@ -8,6 +8,12 @@ namespace UI
 {
     public class GameScreenUI : MonoBehaviour
     {
+        [SerializeField] private GameObject P1BG;
+        [SerializeField] private GameObject P2BG;
+        [SerializeField] private TMP_Text Player1NameText;
+        [SerializeField] private TMP_Text Player2NameText;
+        [SerializeField] private Color PlayerActiveTextColor;
+        [SerializeField] private Color PlayerInactiveTextColor;
         [SerializeField] private GameObject P1LettersCountUI;
         [SerializeField] private GameObject P2LettersCountUI;
         [SerializeField] private TMP_Text CurrentPromptText;
@@ -24,6 +30,22 @@ namespace UI
         public void Hide()
         {
             gameObject.SetActive(false);
+        }
+
+        public void SetP1BG()
+        {
+            P1BG.gameObject.SetActive(true);
+            P2BG.gameObject.SetActive(false);
+            Player1NameText.color = PlayerActiveTextColor;
+            Player2NameText.color = PlayerInactiveTextColor;
+        }
+        
+        public void SetP2BG()
+        {
+            P1BG.gameObject.SetActive(false);
+            P2BG.gameObject.SetActive(true);
+            Player1NameText.color = PlayerInactiveTextColor;
+            Player2NameText.color = PlayerActiveTextColor;
         }
 
         public void UpdateP1LettersCountUI(int lettersCount)
