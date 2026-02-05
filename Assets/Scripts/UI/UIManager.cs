@@ -1,6 +1,7 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace UI
 {
@@ -11,7 +12,7 @@ namespace UI
         [SerializeField] private WaitingScreenUI WaitingScreenUI;
         [SerializeField] private GameScreenUI GameScreenUI;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
-        
+
         private Client m_client;
 
         public Client Client
@@ -19,6 +20,7 @@ namespace UI
             get => m_client;
             set => m_client = value;
         }
+
         protected override void Awake()
         {
             base.Awake();
@@ -49,7 +51,41 @@ namespace UI
             WaitingScreenUI.Hide();
             GameScreenUI.Show();
         }
-        
+
+        public void UpdateP1LettersCountUI(int lettersCount)
+        {
+            GameScreenUI.UpdateP1LettersCountUI(lettersCount);
+        }
+        public void UpdateP2LettersCountUI(int lettersCount)
+        {
+            GameScreenUI.UpdateP2LettersCountUI(lettersCount);
+        }
+
+        public void UpdateCurrentPrompt(string prompt)
+        {
+            GameScreenUI.UpdateCurrentPrompt(prompt);
+        }
+
+        public void UpdateGameScreenTimer(float timeT)
+        {
+            GameScreenUI.UpdateTimer(timeT);
+        }
+
+        public void AddListenerOnWordInputField(UnityAction<string> onWordSubmit)
+        {
+            GameScreenUI.AddListenerOnWordInputField(onWordSubmit);
+        }
+
+        public void UpdateCurrentWordInputFieldInteractability(bool interactable)
+        {
+            GameScreenUI.UpdateCurrentWordInputFieldInteractability(interactable);
+        }
+
+        public void UpdateInvalidLetters(string invalidLetters)
+        {
+            GameScreenUI.UpdateInvalidLetters(invalidLetters);
+        }
+
         private bool m_isGameStarted = false;
 
         private void Update()

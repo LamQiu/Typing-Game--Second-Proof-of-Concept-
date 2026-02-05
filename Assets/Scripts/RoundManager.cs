@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UI;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -356,12 +357,18 @@ public class RoundManager : NetworkBehaviour
         {
             bannedLettersText.text += letter;
         }
+        
+        string original = bannedLettersText.text;
+        string cleaned = original.Replace("\r", "").Replace("\n", "");
+        UIManager.Instance.UpdateInvalidLetters(cleaned);
+
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
     {
-        _timeScaleMultiplier = timeScaleMultiplier;
+        //_timeScaleMultiplier = timeScaleMultiplier;
+        _timeScaleMultiplier = 1.0f;
         Debug.Log($"Time Multiplier Text set to 1.0x");
         timeMultiplierText.text = timeScaleMultiplier.ToString("F1") + "x";
         if (timeScaleMultiplier == 1.0)
@@ -376,6 +383,8 @@ public class RoundManager : NetworkBehaviour
         {
             timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[2];
         }
+        
+        
     }
 
     [Rpc(SendTo.Server)]
