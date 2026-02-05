@@ -77,6 +77,7 @@ public class Client : NetworkBehaviour
         sharedText = "";
         usedWords.Clear();
         _bannedLetters = Array.Empty<char>();
+        
     }
 
     private void ResetUI()
@@ -102,6 +103,11 @@ public class Client : NetworkBehaviour
             healthBarImage.fillOrigin = 1;
             timeRemainingSegmentedBar.InitializeSegmentedTimeRemainingBar(timeScaleMultiplierAtSegmentClient,
                 _roundManager.RoundTimeLimitInSeconds, false);
+        }
+
+        if (IsClient && !IsOwner)
+        {
+            worldCanvas.gameObject.SetActive(false);
         }
 
         answerAreaText.text = "";

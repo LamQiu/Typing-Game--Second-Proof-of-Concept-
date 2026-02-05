@@ -22,8 +22,6 @@ namespace UI
         public void Show()
         {
             gameObject.SetActive(true);
-            CommandInputField.Select();
-            CommandInputField.ActivateInputField();
         }
 
         public void Hide()
@@ -39,6 +37,13 @@ namespace UI
             }
         }
 
-        
+        private void Update()
+        {
+            if(gameObject.activeSelf)
+            {
+                CommandInputField.Select();
+                CommandInputField.ActivateInputField();
+            }
+        }
     }
 }
