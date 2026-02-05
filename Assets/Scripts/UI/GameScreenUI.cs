@@ -32,7 +32,7 @@ namespace UI
             gameObject.SetActive(false);
         }
 
-        public void SetP1BG()
+        public void SetP1()
         {
             P1BG.gameObject.SetActive(true);
             P2BG.gameObject.SetActive(false);
@@ -40,7 +40,7 @@ namespace UI
             Player2NameText.color = PlayerInactiveTextColor;
         }
         
-        public void SetP2BG()
+        public void SetP2()
         {
             P1BG.gameObject.SetActive(false);
             P2BG.gameObject.SetActive(true);

@@ -65,11 +65,11 @@ namespace UI
         
         public void SetP1()
         {
-            GameScreenUI.SetP1BG();
+            GameScreenUI.SetP1();
         }
         public void SetP2()
         {
-            GameScreenUI.SetP2BG();
+            GameScreenUI.SetP2();
         }
 
         public void UpdateP1LettersCountUI(int lettersCount)
@@ -111,6 +111,23 @@ namespace UI
 
         #region ResolutionScreen UI
 
+        public void UpdateP1AnswerText(string text)
+        {
+            ResolutionScreenUI.UpdateP1AnswerText(text);
+        }
+        public void UpdateP2AnswerText(string text)
+        {
+            ResolutionScreenUI.UpdateP2AnswerText(text);
+        }
+
+        public void ResolutionScreenSetP1()
+        {
+            ResolutionScreenUI.SetP1();
+        }
+        public void ResolutionScreenSetP2()
+        {
+            ResolutionScreenUI.SetP2();
+        }
         public void UpdateResolutionPressSpaceHintText(string content)
         {
             ResolutionScreenUI.UpdateResolutionPressSpaceHintText(content);

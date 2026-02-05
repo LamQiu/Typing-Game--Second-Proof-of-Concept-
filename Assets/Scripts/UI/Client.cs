@@ -69,13 +69,14 @@ public class Client : NetworkBehaviour
     private PromptGenerator.Prompt _currentPrompt;
 
     private string sharedText = "";
+    public string SharedText => sharedText;
     private bool _checkValid = false;
     private bool _isResoluting;
     private bool _isAnswering;
     private List<string> usedWords = new List<string>();
 
     #endregion
-    
+
     private Client m_otherClient;
 
     #region ===== Reset Helpers =====
@@ -360,6 +361,7 @@ public class Client : NetworkBehaviour
                 break;
             }
         }
+
         return result;
     }
 
@@ -425,7 +427,7 @@ public class Client : NetworkBehaviour
         {
             m_otherClient = GetOtherClient();
         }
-        
+
         if (!IsOwner)
         {
             hintText.gameObject.SetActive(false);
@@ -439,10 +441,16 @@ public class Client : NetworkBehaviour
             worldCanvas.gameObject.SetActive(true);
             //answerAreaText.Select();
             //answerAreaText.ActivateInputField();
-            if(IsHost)
+            if (IsHost)
+            {
                 UIManager.Instance.SetP1();
+                UIManager.Instance.ResolutionScreenSetP1();
+            }
             else if (IsClient)
+            {
                 UIManager.Instance.SetP2();
+                UIManager.Instance.ResolutionScreenSetP2();
+            }
         }
 
         _checkValid = false;

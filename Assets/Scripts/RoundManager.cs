@@ -231,8 +231,19 @@ public class RoundManager : NetworkBehaviour
         submittedAnswerClients.Clear();
         IsResolutionPhase.Value = true;
         _startResolute = true;
+        
+        string hostAnswer = "";
+        string clientAnswer = "";
+        if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
+        {
+            Client host = pm.GetHost();
+            Client client = pm.GetClient(1);
 
-        EnterResolutionPhaseClientRpc();
+            hostAnswer = host.SharedText;
+            clientAnswer = client.SharedText;
+        }
+
+        EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
     }
 
     private void EndResolutionPhase()
@@ -400,6 +411,14 @@ public class RoundManager : NetworkBehaviour
 
         if (confirmedResolutionClients.Count >= 2)
             EndResolutionPhase();
+
+        ConfirmResolutionClientRpc(clientId);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ConfirmResolutionClientRpc(ulong clientId)
+    {
+        UIManager.Instance.UpdateResolutionPressSpaceHintText("");
     }
 
     // ============================================================
@@ -458,7 +477,7 @@ public class RoundManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void EnterResolutionPhaseClientRpc()
+    private void EnterResolutionPhaseClientRpc(string hostAnswer, string clientAnswer)
     {
         SoundManager.Instance?.StopBgm();
         resolutionBG.SetActive(true);
@@ -471,6 +490,8 @@ public class RoundManager : NetworkBehaviour
         
         UIManager.Instance.EnterResolutionScreen();
         UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
+        UIManager.Instance.UpdateP1AnswerText(hostAnswer);
+        UIManager.Instance.UpdateP2AnswerText(clientAnswer);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
