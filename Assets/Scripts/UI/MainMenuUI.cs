@@ -33,7 +33,7 @@ namespace UI
         {
             if(content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
             {
-                UIManager.Instance.EnterPlay();
+                UIManager.Instance.EnterConnectionScreen();
             }
         }
 
