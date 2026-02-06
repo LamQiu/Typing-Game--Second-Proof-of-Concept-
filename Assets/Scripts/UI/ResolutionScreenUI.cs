@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
@@ -11,6 +12,8 @@ namespace UI
         [SerializeField] private GameObject P2BG;
         [SerializeField] private TMP_Text Player1NameText;
         [SerializeField] private TMP_Text Player2NameText;
+        [SerializeField] private Image Player1FillImage;
+        [SerializeField] private Image Player2FillImage;
         [SerializeField] private Color PlayerActiveTextColor;
         [SerializeField] private Color PlayerInactiveTextColor;
         public TMP_Text ResolutionPressSpaceHintText;
@@ -37,6 +40,14 @@ namespace UI
             P2BG.gameObject.SetActive(false);
             Player1NameText.color = PlayerInactiveTextColor;
             Player2NameText.color = PlayerActiveTextColor;
+        }
+        public void UpdatePlayer1FillImage(float value)
+        {
+            Player1FillImage.fillAmount = value;
+        }
+        public void UpdatePlayer2FillImage(float value)
+        {
+            Player2FillImage.fillAmount = value;
         }
         public void Show()
         {

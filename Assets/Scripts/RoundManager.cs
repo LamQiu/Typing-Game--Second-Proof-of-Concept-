@@ -259,7 +259,7 @@ public class RoundManager : NetworkBehaviour
         {
             _ended = false;
             string winner =
-                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "P2" : "P1";
+                PlayerManager.Instance.GetHost().CurrentScore.Value <= 0 ? "P2" : "P1";
 
             EndGameClientRpc(winner);
             return;
@@ -442,6 +442,7 @@ public class RoundManager : NetworkBehaviour
         {
             int hostScore = pm.GetHost().LetterCount.Value;
             int clientScore = pm.GetClient(1).LetterCount.Value;
+            
             int difference = hostScore - clientScore;
 
             string comparison = difference > 0 ? ">" :
@@ -449,11 +450,15 @@ public class RoundManager : NetworkBehaviour
                 "=";
 
             text = $"Letter Count {hostScore}  <size=300%>{comparison}</size>  Letter Count {clientScore}";
-
-            if (difference > 0)
-                pm.GetClient(1).Health.Value -= difference;
-            else if (difference < 0)
-                pm.GetHost().Health.Value += difference;
+            
+            Client host = pm.GetHost();
+            Client client = pm.GetClient(1);
+            host.CurrentScore.Value += host.LetterCount.Value;
+            client.CurrentScore.Value += client.LetterCount.Value;
+            // if (difference > 0)
+            //     pm.GetClient(1).CurrentScore.Value -= difference;
+            // else if (difference < 0)
+            //     pm.GetHost().CurrentScore.Value += difference;
         }
 
         // Ban Letter

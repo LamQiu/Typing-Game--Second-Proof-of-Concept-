@@ -57,7 +57,9 @@ public class Client : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
 
-    public NetworkVariable<int> Health = new NetworkVariable<int>();
+    public NetworkVariable<int> CurrentScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
     public NetworkVariable<bool> ResolutionConfirmed = new NetworkVariable<bool>();
 
     #endregion
@@ -137,7 +139,7 @@ public class Client : NetworkBehaviour
     {
         if (IsServer)
         {
-            Health.Value = maxHealth;
+            CurrentScore.Value = 0;
             LetterCount.Value = 0;
             ResolutionConfirmed.Value = false;
         }
@@ -176,13 +178,16 @@ public class Client : NetworkBehaviour
             PlayerManager.Instance.RegisterPlayer(OwnerClientId, this);
         }
 
-        LetterCount.OnValueChanged += OnLetterCountChanged;
-        Health.OnValueChanged += OnHealthChanged;
-
-        var promptGenerator = FindAnyObjectByType<PromptGenerator>();
-        if (promptGenerator != null)
+        if (IsOwner)
         {
-            promptGenerator.CurrentPrompt.OnValueChanged += OnPromptChanged;
+            LetterCount.OnValueChanged += OnLetterCountChanged;
+            CurrentScore.OnValueChanged += OnCurrentScoreChanged;
+
+            var promptGenerator = FindAnyObjectByType<PromptGenerator>();
+            if (promptGenerator != null)
+            {
+                promptGenerator.CurrentPrompt.OnValueChanged += OnPromptChanged;
+            }
         }
 
         _roundManager = FindAnyObjectByType<RoundManager>();
@@ -327,17 +332,6 @@ public class Client : NetworkBehaviour
     {
         UpdateLetterCountUI(value);
 
-        if (IsHost)
-        {
-            UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value);
-            UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
-        }
-        else
-        {
-            UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
-            UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
-        }
-
 
         // if(IsHost)
         // {
@@ -365,9 +359,12 @@ public class Client : NetworkBehaviour
         return result;
     }
 
-    private void OnHealthChanged(int prev, int value)
+    private const int k_winScore = 100;
+    private const int k_maxScore = 150;
+
+    private void OnCurrentScoreChanged(int prev, int value)
     {
-        if (value <= 0)
+        if (value >= k_winScore)
         {
             var gm = FindAnyObjectByType<GameManager>();
             if (gm != null)
@@ -377,6 +374,17 @@ public class Client : NetworkBehaviour
 
         currentHealthText.text = string.Format(k_currentHealthTextFormat, value);
         healthBarImage.fillAmount = (float)value / maxHealth;
+
+        if (IsHost)
+        {
+            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+        }
+        else if (IsClient)
+        {
+            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+        }
     }
 
     private void OnPromptChanged(PromptGenerator.Prompt prev, PromptGenerator.Prompt value)
@@ -497,6 +505,17 @@ public class Client : NetworkBehaviour
                 Debug.Log("SubmitAnswerServerRpc at segment: " + timeRemainingSegmentedBar.CurrentSegmentIndex + "");
                 Check(keepInput: false);
             }
+        }
+        
+        if (IsHost)
+        {
+            UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value);
+            UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
+        }
+        else if(IsClient)
+        {
+            UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
+            UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
         }
 
         if (EventSystem.current.currentSelectedGameObject != answerAreaText.gameObject && !_isResoluting)

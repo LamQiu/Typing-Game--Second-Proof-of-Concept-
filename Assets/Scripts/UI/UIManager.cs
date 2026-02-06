@@ -50,6 +50,7 @@ namespace UI
 
         public void EnterGameScreen()
         {
+            ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             ResolutionScreenUI.Hide();
             GameScreenUI.Show();
@@ -131,6 +132,15 @@ namespace UI
         public void UpdateResolutionPressSpaceHintText(string content)
         {
             ResolutionScreenUI.UpdateResolutionPressSpaceHintText(content);
+        }
+        
+        public void UpdatePlayer1FillImage(float value)
+        {
+            ResolutionScreenUI.UpdatePlayer1FillImage(value);
+        }
+        public void UpdatePlayer2FillImage(float value)
+        {
+            ResolutionScreenUI.UpdatePlayer2FillImage(value);
         }
 
         #endregion

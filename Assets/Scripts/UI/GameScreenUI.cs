@@ -20,6 +20,7 @@ namespace UI
         [SerializeField] private Image TimerImage;
         [SerializeField] private TMP_InputField WordInputField;
         [SerializeField] private TMP_Text InvalidLettersText;
+        [SerializeField] private TMP_Text ResolutionInvalidLettersText;
 
         public void Show()
         {
@@ -96,6 +97,7 @@ namespace UI
         public void UpdateInvalidLetters(string invalidLetters)
         {
             InvalidLettersText.text = "invalid letters" + invalidLetters;
+            ResolutionInvalidLettersText.text = "invalid letters" + invalidLetters;
         }
 
         private void Update()
@@ -103,6 +105,7 @@ namespace UI
             if (gameObject.activeSelf)
             {
                 WordInputField.Select();
+                WordInputField.ActivateInputField();
             }
         }
     }
