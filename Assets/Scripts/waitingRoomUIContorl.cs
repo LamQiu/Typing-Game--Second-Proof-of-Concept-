@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -5,7 +6,11 @@ using TMPro;
 public class waitingRoomUIContorl : MonoBehaviour
 {
     [SerializeField] private Image statusP1;
+    [SerializeField] private Image P1JoinedImage;
+    [SerializeField] private TMP_Text P1NameText;
     [SerializeField] private Image statusP2;
+    [SerializeField] private Image P2JoinedImage;
+    [SerializeField] private TMP_Text P2NameText;
     [SerializeField] private Image statusP3;
     [SerializeField] private Image statusP4;
 
@@ -33,7 +38,13 @@ public class waitingRoomUIContorl : MonoBehaviour
         Self,
     }
 
-// update is called once per frame
+    private void Awake()
+    {
+        p3Status = PlayerStatus.NotExist;
+        p4Status = PlayerStatus.NotExist;
+    }
+
+    // update is called once per frame
     void Update(){
         UpdateStatus();
     }
@@ -100,10 +111,24 @@ public class waitingRoomUIContorl : MonoBehaviour
             }
         }
 
-        setIconStatus(iconP1, p1Status);
-        setIconStatus(iconP2, p2Status);
-        setIconStatus(iconP3, p3Status);
-        setIconStatus(iconP4, p4Status);
+        // setIconStatus(iconP1, p1Status);
+        // setIconStatus(iconP2, p2Status);
+        // setIconStatus(iconP3, p3Status);
+        // setIconStatus(iconP4, p4Status);
+        
+        if(p1Status == PlayerStatus.Joined)
+        {
+            P1JoinedImage.gameObject.SetActive(true);
+            P1JoinedImage.color = whiteColor;
+            P1NameText.color = blackColor;
+        }
+
+        if (p2Status == PlayerStatus.Joined)
+        {
+            P2JoinedImage.gameObject.SetActive(true);
+            P2JoinedImage.color = whiteColor;
+            P2NameText.color = blackColor;
+        }
 
         int joinedPlayerCount = p1Status == PlayerStatus.NotJoined ? 1 : 0;
         joinedPlayerCount += p2Status == PlayerStatus.NotJoined ? 1 : 0;

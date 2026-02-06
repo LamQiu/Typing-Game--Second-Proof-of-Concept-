@@ -506,16 +506,40 @@ public class Client : NetworkBehaviour
                 Check(keepInput: false);
             }
         }
-        
+
         if (IsHost)
         {
             UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value);
-            UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
+            if (m_otherClient != null)
+            {
+                UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
+            }
         }
-        else if(IsClient)
+        else if (IsClient)
         {
-            UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
+            if (m_otherClient != null)
+            {
+                UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
+            }
+
             UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
+        }
+
+        if (IsHost)
+        {
+            UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_maxScore);
+            if (m_otherClient != null)
+            {
+                UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+            }
+        }
+        else if (IsClient)
+        {
+            UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_maxScore);
+            if (m_otherClient != null)
+            {
+                UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+            }
         }
 
         if (EventSystem.current.currentSelectedGameObject != answerAreaText.gameObject && !_isResoluting)
@@ -556,7 +580,7 @@ public class Client : NetworkBehaviour
                 }
                 else
                 {
-                    ChangeLetterCountServerRpc(GetValidLetterCount(answer));
+                    ChangeLetterCount(GetValidLetterCount(answer));
                     hint = $"\"{answer}\" Submitted";
 
                     MarkUsedWord(answer.ToLower());
@@ -593,7 +617,7 @@ public class Client : NetworkBehaviour
             Debug.Log($"Updated hint: {hint}");
         }
 
-        ChangeLetterCountServerRpc(0);
+        ChangeLetterCount(0);
 
         if (!keepInput)
         {
@@ -677,8 +701,7 @@ public class Client : NetworkBehaviour
 
     #region ===== Letter Count Sync =====
 
-    [Rpc(SendTo.Server)]
-    private void ChangeLetterCountServerRpc(int amt)
+    private void ChangeLetterCount(int amt)
     {
         LetterCount.Value = amt;
     }
