@@ -49,6 +49,11 @@ public class waitingRoomUIContorl : MonoBehaviour
         readyPlayerCount += p2Status == PlayerStatus.Joined || p2Status == PlayerStatus.Self ? 1 : 0;
         readyPlayerCount += p3Status == PlayerStatus.Joined || p3Status == PlayerStatus.Self ? 1 : 0;
         readyPlayerCount += p4Status == PlayerStatus.Joined || p4Status == PlayerStatus.Self ? 1 : 0;
+
+        statusP1.gameObject.SetActive(true);
+        statusP2.gameObject.SetActive(true);
+        statusP3.gameObject.SetActive(true);
+        statusP4.gameObject.SetActive(true);
         switch (readyPlayerCount)
         {
             case 0:
@@ -111,5 +116,29 @@ public class waitingRoomUIContorl : MonoBehaviour
         joinedPlayerCount += p4Status == PlayerStatus.NotJoined ? 1 : 0;
         joinedPlayerCount += readyPlayerCount;
         readyPlayerCountText.text = readyPlayerCount + "/" + joinedPlayerCount;
+
+        switch (joinedPlayerCount)
+        {
+            case 0:
+                statusP1.gameObject.SetActive(false);
+                statusP2.gameObject.SetActive(false);
+                statusP3.gameObject.SetActive(false);
+                statusP4.gameObject.SetActive(false);
+                break;
+            case 1:
+                statusP2.gameObject.SetActive(false);
+                statusP3.gameObject.SetActive(false);
+                statusP4.gameObject.SetActive(false);
+                break;
+            case 2:
+                statusP3.gameObject.SetActive(false);
+                statusP4.gameObject.SetActive(false);
+                break;
+            case 3:
+                statusP4.gameObject.SetActive(false);
+                break;
+            case 4:
+                break;
+        }
     }
 }
