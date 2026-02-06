@@ -22,7 +22,6 @@ namespace UI
         public void Show()
         {
             gameObject.SetActive(true);
-            CommandInputField.Select();
             CommandInputField.ActivateInputField();
         }
 
@@ -30,15 +29,21 @@ namespace UI
         {
             gameObject.SetActive(false);
         }
-        
+
         private void OnCommandInputFieldEndEdit(string content)
         {
-            if(content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
+            if (content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
             {
-                UIManager.Instance.EnterPlay();
+                UIManager.Instance.EnterConnectionScreen();
             }
         }
 
-        
+        private void Update()
+        {
+            if (gameObject.activeSelf)
+            {
+                CommandInputField.Select();
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UI;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -230,8 +231,19 @@ public class RoundManager : NetworkBehaviour
         submittedAnswerClients.Clear();
         IsResolutionPhase.Value = true;
         _startResolute = true;
+        
+        string hostAnswer = "";
+        string clientAnswer = "";
+        if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
+        {
+            Client host = pm.GetHost();
+            Client client = pm.GetClient(1);
 
-        EnterResolutionPhaseClientRpc();
+            hostAnswer = host.SharedText;
+            clientAnswer = client.SharedText;
+        }
+
+        EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
     }
 
     private void EndResolutionPhase()
@@ -247,7 +259,7 @@ public class RoundManager : NetworkBehaviour
         {
             _ended = false;
             string winner =
-                PlayerManager.Instance.GetHost().Health.Value <= 0 ? "P2" : "P1";
+                PlayerManager.Instance.GetHost().CurrentScore.Value <= 0 ? "P2" : "P1";
 
             EndGameClientRpc(winner);
             return;
@@ -356,12 +368,18 @@ public class RoundManager : NetworkBehaviour
         {
             bannedLettersText.text += letter;
         }
+        
+        string original = bannedLettersText.text;
+        string cleaned = original.Replace("\r", "").Replace("\n", "");
+        UIManager.Instance.UpdateInvalidLetters(cleaned);
+
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     private void OnSubmitAnswerClientRpc(float timeScaleMultiplier)
     {
-        _timeScaleMultiplier = timeScaleMultiplier;
+        //_timeScaleMultiplier = timeScaleMultiplier;
+        _timeScaleMultiplier = 1.0f;
         Debug.Log($"Time Multiplier Text set to 1.0x");
         timeMultiplierText.text = timeScaleMultiplier.ToString("F1") + "x";
         if (timeScaleMultiplier == 1.0)
@@ -376,6 +394,8 @@ public class RoundManager : NetworkBehaviour
         {
             timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[2];
         }
+        
+        
     }
 
     [Rpc(SendTo.Server)]
@@ -391,6 +411,14 @@ public class RoundManager : NetworkBehaviour
 
         if (confirmedResolutionClients.Count >= 2)
             EndResolutionPhase();
+
+        ConfirmResolutionClientRpc(clientId);
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void ConfirmResolutionClientRpc(ulong clientId)
+    {
+        UIManager.Instance.UpdateResolutionPressSpaceHintText("");
     }
 
     // ============================================================
@@ -414,6 +442,7 @@ public class RoundManager : NetworkBehaviour
         {
             int hostScore = pm.GetHost().LetterCount.Value;
             int clientScore = pm.GetClient(1).LetterCount.Value;
+            
             int difference = hostScore - clientScore;
 
             string comparison = difference > 0 ? ">" :
@@ -421,11 +450,15 @@ public class RoundManager : NetworkBehaviour
                 "=";
 
             text = $"Letter Count {hostScore}  <size=300%>{comparison}</size>  Letter Count {clientScore}";
-
-            if (difference > 0)
-                pm.GetClient(1).Health.Value -= difference;
-            else if (difference < 0)
-                pm.GetHost().Health.Value += difference;
+            
+            Client host = pm.GetHost();
+            Client client = pm.GetClient(1);
+            host.CurrentScore.Value += host.LetterCount.Value;
+            client.CurrentScore.Value += client.LetterCount.Value;
+            // if (difference > 0)
+            //     pm.GetClient(1).CurrentScore.Value -= difference;
+            // else if (difference < 0)
+            //     pm.GetHost().CurrentScore.Value += difference;
         }
 
         // Ban Letter
@@ -449,7 +482,7 @@ public class RoundManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void EnterResolutionPhaseClientRpc()
+    private void EnterResolutionPhaseClientRpc(string hostAnswer, string clientAnswer)
     {
         SoundManager.Instance?.StopBgm();
         resolutionBG.SetActive(true);
@@ -459,6 +492,11 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterResolutionPhase();
+        
+        UIManager.Instance.EnterResolutionScreen();
+        UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
+        UIManager.Instance.UpdateP1AnswerText(hostAnswer);
+        UIManager.Instance.UpdateP2AnswerText(clientAnswer);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -487,6 +525,8 @@ public class RoundManager : NetworkBehaviour
             c.OnEnterNextRound();
         
         _timeScaleMultiplier = 1f;
+        
+        UIManager.Instance.EnterGameScreen();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
