@@ -124,7 +124,7 @@ public class RoundManager : NetworkBehaviour
         submittedAnswers.Clear();
         banLetterBG.gameObject.SetActive(false);
         bannedLettersText.text = "";
-        
+
 
         winImage.SetActive(false);
         winText.text = "";
@@ -156,7 +156,7 @@ public class RoundManager : NetworkBehaviour
     private void HandleRoundPhase()
     {
         if (!_started) return;
-        
+
         _localRoundTimeRemainingInSeconds -= Time.deltaTime * _timeScaleMultiplier;
 
         if (!IsServer) return;
@@ -211,7 +211,7 @@ public class RoundManager : NetworkBehaviour
     private void EnterNextRound()
     {
         Debug.Log("Round Ended!");
-        
+
         submittedAnswerClients.Clear();
 
         // Ban Letter
@@ -222,7 +222,7 @@ public class RoundManager : NetworkBehaviour
         roundTimeLimitInSeconds = roundTimes[_currentRound];
 
         EnterNextRoundClientRpc();
-        
+
         RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
     }
 
@@ -231,7 +231,7 @@ public class RoundManager : NetworkBehaviour
         submittedAnswerClients.Clear();
         IsResolutionPhase.Value = true;
         _startResolute = true;
-        
+
         string hostAnswer = "";
         string clientAnswer = "";
         if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
@@ -368,11 +368,12 @@ public class RoundManager : NetworkBehaviour
         {
             bannedLettersText.text += letter;
         }
-        
-        string original = bannedLettersText.text;
-        string cleaned = original.Replace("\r", "").Replace("\n", "");
-        UIManager.Instance.UpdateInvalidLetters(cleaned);
 
+        string original = bannedLettersText.text;
+        string bannedLetters = original.Replace("\r", "").Replace("\n", "");
+        UIManager.Instance.UpdateBannedLetters(bannedLetters);
+        string cleaned = original.Replace("\r", "").Replace("\n", " ");
+        UIManager.Instance.UpdateInvalidLetters(cleaned);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -394,8 +395,6 @@ public class RoundManager : NetworkBehaviour
         {
             timeMultiplierIndicatorImage.sprite = timeMultiplierIndicatorSprites[2];
         }
-        
-        
     }
 
     [Rpc(SendTo.Server)]
@@ -418,7 +417,10 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     public void ConfirmResolutionClientRpc(ulong clientId)
     {
-        UIManager.Instance.UpdateResolutionPressSpaceHintText("");
+        if (OwnerClientId == clientId)
+        {
+            //UIManager.Instance.UpdateResolutionPressSpaceHintText("");
+        }
     }
 
     // ============================================================
@@ -442,7 +444,7 @@ public class RoundManager : NetworkBehaviour
         {
             int hostScore = pm.GetHost().LetterCount.Value;
             int clientScore = pm.GetClient(1).LetterCount.Value;
-            
+
             int difference = hostScore - clientScore;
 
             string comparison = difference > 0 ? ">" :
@@ -450,7 +452,7 @@ public class RoundManager : NetworkBehaviour
                 "=";
 
             text = $"Letter Count {hostScore}  <size=300%>{comparison}</size>  Letter Count {clientScore}";
-            
+
             Client host = pm.GetHost();
             Client client = pm.GetClient(1);
             host.CurrentScore.Value += host.LetterCount.Value;
@@ -492,7 +494,7 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterResolutionPhase();
-        
+
         UIManager.Instance.EnterResolutionScreen();
         UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
         UIManager.Instance.UpdateP1AnswerText(hostAnswer);
@@ -523,9 +525,9 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
             c.OnEnterNextRound();
-        
+
         _timeScaleMultiplier = 1f;
-        
+
         UIManager.Instance.EnterGameScreen();
     }
 
@@ -546,6 +548,8 @@ public class RoundManager : NetworkBehaviour
         timeMultiplierText.text = "";
         timeMultiplierIndicatorImage.gameObject.SetActive(false);
         winText.text = playerID + " Wins";
+
+        UIManager.Instance.UpdateWinText(playerID + " wins");
     }
 
     // ============================================================

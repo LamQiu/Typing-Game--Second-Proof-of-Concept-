@@ -12,6 +12,7 @@ namespace UI
         [SerializeField] private WaitingScreenUI WaitingScreenUI;
         [SerializeField] private GameScreenUI GameScreenUI;
         [SerializeField] private ResolutionScreenUI ResolutionScreenUI;
+        [SerializeField] private WinScreen WinScreen;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
 
         private Client m_client;
@@ -34,6 +35,7 @@ namespace UI
             WaitingScreenUI.Hide();
             GameScreenUI.Hide();
             ResolutionScreenUI.Hide();
+            WinScreen.Hide();
         }
 
         public void EnterConnectionScreen()
@@ -54,6 +56,7 @@ namespace UI
             WaitingScreenUI.Hide();
             ResolutionScreenUI.Hide();
             GameScreenUI.Show();
+            GameScreenUI.ClearWordInputField();
         }
 
         public void EnterResolutionScreen()
@@ -62,12 +65,23 @@ namespace UI
             ResolutionScreenUI.Show();
         }
 
+        public void EnterWinScreen()
+        {
+            WinScreen.Show();
+        }
+
+        public void UpdateWinText(string text)
+        {
+            WinScreen.UpdateWinText(text);
+        }
+
         #region GameScreen UI
-        
+
         public void SetP1()
         {
             GameScreenUI.SetP1();
         }
+
         public void SetP2()
         {
             GameScreenUI.SetP2();
@@ -77,6 +91,7 @@ namespace UI
         {
             GameScreenUI.UpdateP1LettersCountUI(lettersCount);
         }
+
         public void UpdateP2LettersCountUI(int lettersCount)
         {
             GameScreenUI.UpdateP2LettersCountUI(lettersCount);
@@ -84,7 +99,7 @@ namespace UI
 
         public void UpdateCurrentPrompt(string prompt)
         {
-            GameScreenUI.UpdateCurrentPrompt(prompt);
+            GameScreenUI.UpdateCurrentPrompt(GetTextWithTransparentColor(prompt));
         }
 
         public void UpdateGameScreenTimer(float timeT)
@@ -97,6 +112,11 @@ namespace UI
             GameScreenUI.AddListenerOnWordInputField(onWordSubmit);
         }
 
+        public void UpdateWordInputField(string content)
+        {
+            GameScreenUI.UpdateWordInputField(content);
+        }
+
         public void UpdateCurrentWordInputFieldInteractability(bool interactable)
         {
             GameScreenUI.UpdateCurrentWordInputFieldInteractability(interactable);
@@ -104,9 +124,9 @@ namespace UI
 
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            GameScreenUI.UpdateInvalidLetters(invalidLetters);
+            GameScreenUI.UpdateInvalidLetters(GetTextWithTransparentColor(invalidLetters));
         }
-        
+
         #endregion
 
 
@@ -114,30 +134,34 @@ namespace UI
 
         public void UpdateP1AnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP1AnswerText(text);
+            ResolutionScreenUI.UpdateP1AnswerText(GetTextWithTransparentColor(text));
         }
+
         public void UpdateP2AnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP2AnswerText(text);
+            ResolutionScreenUI.UpdateP2AnswerText(GetTextWithTransparentColor(text));
         }
 
         public void ResolutionScreenSetP1()
         {
             ResolutionScreenUI.SetP1();
         }
+
         public void ResolutionScreenSetP2()
         {
             ResolutionScreenUI.SetP2();
         }
+
         public void UpdateResolutionPressSpaceHintText(string content)
         {
-            ResolutionScreenUI.UpdateResolutionPressSpaceHintText(content);
+            ResolutionScreenUI.UpdateResolutionPressSpaceHintText(GetTextWithTransparentColor(content));
         }
-        
+
         public void UpdatePlayer1FillImage(float value)
         {
             ResolutionScreenUI.UpdatePlayer1FillImage(value);
         }
+
         public void UpdatePlayer2FillImage(float value)
         {
             ResolutionScreenUI.UpdatePlayer2FillImage(value);
@@ -154,6 +178,36 @@ namespace UI
                 m_isGameStarted = true;
                 EnterGameScreen();
             }
+        }
+
+        private string m_bannedLetters;
+
+        public void UpdateBannedLetters(string bannedLetters)
+        {
+            m_bannedLetters = bannedLetters;
+        }
+
+        public string GetTextWithTransparentColor(string text)
+        {
+            return text;
+            string result = "";
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (m_bannedLetters != null &&
+                    c != ' ' &&
+                    m_bannedLetters.ToLower().Contains(char.ToLower(c)))
+                {
+                    result += $"<color=#CCCCCCAA>{c}</color>";
+                }
+                else
+                {
+                    result += c;
+                }
+            }
+
+
+            return result;
         }
     }
 }

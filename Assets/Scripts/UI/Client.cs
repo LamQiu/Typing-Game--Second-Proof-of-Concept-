@@ -232,7 +232,7 @@ public class Client : NetworkBehaviour
 
     private bool _ignoreInputChange = false;
 
-    private void UpdateInputFieldText(string text)
+    private string UpdateInputFieldText(string text)
     {
         _ignoreInputChange = true;
 
@@ -253,6 +253,8 @@ public class Client : NetworkBehaviour
         answerAreaText.text = result;
 
         _ignoreInputChange = false;
+        
+        return result;
     }
 
 
@@ -470,7 +472,11 @@ public class Client : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     public void UpdateConfirmClientRpc(ulong id)
     {
-        if (OwnerClientId == id) hintText.text = "";
+        if (OwnerClientId == id)
+        {
+            hintText.text = "";
+            UIManager.Instance.UpdateResolutionPressSpaceHintText("");
+        }
     }
 
     #endregion
@@ -649,8 +655,16 @@ public class Client : NetworkBehaviour
 
         if (SoundManager.Instance != null)
             SoundManager.Instance.PlayTypingSfx();
+        
+        Debug.Log($"OnLocalInputFieldChanged: {value}");
 
-        UpdateInputFieldText(GetNonTransparentString(value));
+        string result = UpdateInputFieldText(GetNonTransparentString(value));
+        
+        if (IsOwner)
+        {
+            UIManager.Instance.UpdateWordInputField(result);
+        }
+        
         SubmitAnswerDisplayServerRpc(value);
         if (_inputDisplaySyncCoroutine != null) StopCoroutine(_inputDisplaySyncCoroutine);
         _inputDisplaySyncCoroutine = StartCoroutine(FixCaret());
@@ -675,6 +689,7 @@ public class Client : NetworkBehaviour
         sharedText = value;
         UpdateAnswerDisplayClientRpc(value);
     }
+    
 
     [ClientRpc]
     private void UpdateAnswerDisplayClientRpc(string value)
@@ -703,6 +718,7 @@ public class Client : NetworkBehaviour
 
     private void ChangeLetterCount(int amt)
     {
+        Debug.Log($"ChangeLetterCount: {amt}");
         LetterCount.Value = amt;
     }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -40,7 +41,7 @@ namespace UI
             Player1NameText.color = PlayerActiveTextColor;
             Player2NameText.color = PlayerInactiveTextColor;
         }
-        
+
         public void SetP2()
         {
             P1BG.gameObject.SetActive(false);
@@ -53,7 +54,7 @@ namespace UI
         {
             UpdateLettersCountUI(P1LettersCountUI, lettersCount);
         }
-        
+
         public void UpdateP2LettersCountUI(int lettersCount)
         {
             UpdateLettersCountUI(P2LettersCountUI, lettersCount);
@@ -73,7 +74,7 @@ namespace UI
                 }
             }
         }
-        
+
         public void UpdateCurrentPrompt(string prompt)
         {
             CurrentPromptText.text = prompt;
@@ -88,16 +89,33 @@ namespace UI
         {
             WordInputField.onValueChanged.AddListener(onWordSubmit);
         }
+        private Coroutine m_wordInputDisplaySyncCoroutine;
+        public void UpdateWordInputField(string content)
+        {
+            WordInputField.SetTextWithoutNotify(content);
+            if (m_wordInputDisplaySyncCoroutine != null) StopCoroutine(m_wordInputDisplaySyncCoroutine);
+            m_wordInputDisplaySyncCoroutine = StartCoroutine(FixCaret());
+        }
+        private IEnumerator FixCaret()
+        {
+            yield return null;
+            WordInputField.MoveTextEnd(false);
+        }
+
+        public void ClearWordInputField()
+        {
+            WordInputField.text = "";
+        }
 
         public void UpdateCurrentWordInputFieldInteractability(bool interactable)
         {
             WordInputField.interactable = interactable;
         }
-        
+
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            InvalidLettersText.text = "invalid letters" + invalidLetters;
-            ResolutionInvalidLettersText.text = "invalid letters" + invalidLetters;
+            InvalidLettersText.text = "invalid letters : " + invalidLetters;
+            ResolutionInvalidLettersText.text = "invalid letters : " + invalidLetters;
         }
 
         private void Update()
