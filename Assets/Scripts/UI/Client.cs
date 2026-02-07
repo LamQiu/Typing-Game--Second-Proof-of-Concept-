@@ -653,7 +653,7 @@ public class Client : NetworkBehaviour
                     answerAreaText.interactable = false;
                     _checkValid = true;
                     UIManager.Instance.UpdateCurrentWordInputFieldInteractability(false);
-
+                    SoundManager.Instance?.PlaySubmitSfxServerRpc();
 
                     return;
                 }

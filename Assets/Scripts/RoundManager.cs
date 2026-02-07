@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Audio;
 using TMPro;
 using UI;
 using Unity.Netcode;
@@ -69,6 +70,7 @@ public class RoundManager : NetworkBehaviour
     private void Start()
     {
         ResetRoundManager();
+        ThemeMusicManager.Instance.PlayMainMenuTheme();
     }
 
     public override void OnNetworkSpawn()
@@ -315,7 +317,7 @@ public class RoundManager : NetworkBehaviour
         // Mark answer in round words list
         submittedAnswers.Add(answer);
 
-        SoundManager.Instance?.PlaySubmitSfxServerRpc();
+        //SoundManager.Instance?.PlaySubmitSfxServerRpc();
 
 
         if (submittedAnswerClients.Count >= 2)
@@ -501,7 +503,8 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterResolutionPhaseClientRpc(string hostAnswer, string clientAnswer)
     {
-        SoundManager.Instance?.StopBgm();
+        ThemeMusicManager.Instance.PlayScoringTheme();
+        //SoundManager.Instance?.StopBgm();
         resolutionBG.SetActive(true);
         BG.SetActive(false);
         timeMultiplierIndicatorImage.gameObject.SetActive(false);
@@ -526,7 +529,8 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EnterNextRoundClientRpc()
     {
-        SoundManager.Instance?.PlayGameBgm();
+        ThemeMusicManager.Instance.PlayTypingTheme();
+        //SoundManager.Instance?.PlayGameBgm();
         resolutionBG.SetActive(false);
         BG.SetActive(true);
 
