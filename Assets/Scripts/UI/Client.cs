@@ -155,7 +155,7 @@ public class Client : NetworkBehaviour
         }
         else
         {
-            //answerAreaText.interactable = false;
+            answerAreaText.interactable = false;
         }
     }
 
@@ -361,8 +361,8 @@ public class Client : NetworkBehaviour
         return result;
     }
 
-    private const int k_winScore = 100;
-    private const int k_maxScore = 150;
+    private const int k_winScore = 50;
+    //private const int k_maxScore = 75;
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
@@ -379,13 +379,13 @@ public class Client : NetworkBehaviour
 
         if (IsHost)
         {
-            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_maxScore);
-            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_winScore);
+            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
         }
         else if (IsClient)
         {
-            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_maxScore);
-            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_winScore);
+            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
         }
     }
 
@@ -533,18 +533,18 @@ public class Client : NetworkBehaviour
 
         if (IsHost)
         {
-            UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore);
             if (m_otherClient != null)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+                UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
             }
         }
         else if (IsClient)
         {
-            UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_maxScore);
+            UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore);
             if (m_otherClient != null)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_maxScore);
+                UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
             }
         }
 
@@ -554,7 +554,7 @@ public class Client : NetworkBehaviour
             //answerAreaText.ActivateInputField();
         }
 
-        //UIManager.Instance.UpdateCurrentWordInputFieldInteractability(answerAreaText.interactable);
+        UIManager.Instance.UpdateCurrentWordInputFieldInteractability(answerAreaText.interactable);
     }
 
     public override void OnDestroy()
@@ -598,10 +598,12 @@ public class Client : NetworkBehaviour
                         Debug.Log($"Updated hint: {hint}");
                     }
 
+                    Debug.Log($"SubmitAnswerServerRpc {OwnerClientId}");
                     _roundManager.SubmitAnswerServerRpc(OwnerClientId,
                         timeScaleMultiplierAtSegmentClient[index].timeScaleMultiplier, answer);
-                    //answerAreaText.interactable = false;
+                    answerAreaText.interactable = false;
                     _checkValid = true;
+                    UIManager.Instance.UpdateCurrentWordInputFieldInteractability(false);
 
 
                     return;

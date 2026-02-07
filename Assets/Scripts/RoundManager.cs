@@ -400,6 +400,8 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void ConfirmResolutionServerRpc(ulong clientId)
     {
+        Debug.Log($"Confirming resolution from client {clientId}");
+
         if (!confirmedResolutionClients.Contains(clientId))
             confirmedResolutionClients.Add(clientId);
 
@@ -529,6 +531,7 @@ public class RoundManager : NetworkBehaviour
         _timeScaleMultiplier = 1f;
 
         UIManager.Instance.EnterGameScreen();
+        UIManager.Instance.UpdateCurrentWordInputFieldInteractability(true);
     }
 
     [Rpc(SendTo.ClientsAndHost)]

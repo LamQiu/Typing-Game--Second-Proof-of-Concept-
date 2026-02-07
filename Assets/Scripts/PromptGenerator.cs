@@ -10,7 +10,13 @@ public class PromptGenerator : NetworkBehaviour
     public bool randomize;
     private PromptType m_lastPromptType = PromptType.None;
     [SerializeField] private Prompt[] prompts;
-    public List<Prompt> UsesPrompts {get => usedPrompts; set => usedPrompts = value;}
+
+    public List<Prompt> UsesPrompts
+    {
+        get => usedPrompts;
+        set => usedPrompts = value;
+    }
+
     [SerializeField] private List<Prompt> usedPrompts = new List<Prompt>();
     public NetworkVariable<Prompt> CurrentPrompt = new NetworkVariable<Prompt>();
 
@@ -125,7 +131,8 @@ public class PromptGenerator : NetworkBehaviour
 
         public override string ToString()
         {
-            return Regex.Replace(type.ToString(), "([a-z])([A-Z])", "$1 $2") + " " + " <color=white>\"" + content + "\"</color>";
+            return Regex.Replace(type.ToString(), "([a-z])([A-Z])", "$1 $2")
+                   + " " + " \"" + content + "\"";
         }
     }
 }
