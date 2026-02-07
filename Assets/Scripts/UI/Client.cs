@@ -378,13 +378,13 @@ public class Client : NetworkBehaviour
 
         if (IsHost)
         {
-            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_winScore);
-            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
+            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_winScore, CurrentScore.Value);
+            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
         }
         else if (IsClient)
         {
-            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_winScore);
-            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
+            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_winScore, CurrentScore.Value);
+            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
         }
     }
 
@@ -419,6 +419,26 @@ public class Client : NetworkBehaviour
 
         if (IsOwner)
             SubmitAnswerDisplayServerRpc(answerAreaText.text);
+
+        if (IsOwner)
+        {
+            if (IsHost)
+            {
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                if (m_otherClient != null)
+                {
+                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                }
+            }
+            else if (IsClient)
+            {
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                if (m_otherClient != null)
+                {
+                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                }
+            }
+        }
     }
 
     private char[] _bannedLetters;
@@ -551,23 +571,6 @@ public class Client : NetworkBehaviour
             }
 
             UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
-        }
-
-        if (IsHost)
-        {
-            UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore);
-            if (m_otherClient != null)
-            {
-                UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
-            }
-        }
-        else if (IsClient)
-        {
-            UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore);
-            if (m_otherClient != null)
-            {
-                UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore);
-            }
         }
 
         if (EventSystem.current.currentSelectedGameObject != answerAreaText.gameObject && !_isResoluting)
