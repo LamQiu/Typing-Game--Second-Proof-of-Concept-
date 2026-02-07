@@ -27,6 +27,7 @@ namespace UI
         {
             gameObject.SetActive(true);
             WordInputField.ActivateInputField();
+            UpdateInvalidLetters("");
         }
 
         public void Hide()
@@ -114,8 +115,8 @@ namespace UI
 
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            InvalidLettersText.text = "invalid letters : " + invalidLetters.ToLower();
-            ResolutionInvalidLettersText.text = "invalid letters : " + invalidLetters.ToLower();
+            InvalidLettersText.text = "invalid letters: " + invalidLetters.ToLower();
+            ResolutionInvalidLettersText.text = "invalid letters: " + invalidLetters.ToLower();
         }
 
         private void Update()

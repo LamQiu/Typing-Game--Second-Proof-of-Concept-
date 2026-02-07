@@ -202,9 +202,11 @@ public class RoundManager : NetworkBehaviour
         EnterNextRound();
     }
 
+    private const float k_resolveDelayTimeInSeconds = 0.1f;
+
     private IEnumerator DelayResolve()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(k_resolveDelayTimeInSeconds);
         ResoluteServerRpc();
     }
 
@@ -459,6 +461,9 @@ public class RoundManager : NetworkBehaviour
             Client client = pm.GetClient(1);
             host.CurrentScore.Value += host.LetterCount.Value;
             client.CurrentScore.Value += client.LetterCount.Value;
+
+            host.CheckWinStateServerRpc(host.OwnerClientId);
+            client.CheckWinStateServerRpc(client.OwnerClientId);
             // if (difference > 0)
             //     pm.GetClient(1).CurrentScore.Value -= difference;
             // else if (difference < 0)
@@ -544,6 +549,8 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void EndGameClientRpc(string playerID)
     {
+        UIManager.Instance.EnterWinScreen();
+
         winImage.SetActive(true);
         timeMultiplierText.text = "";
         //timeMultiplierText.gameObject.SetActive(false);

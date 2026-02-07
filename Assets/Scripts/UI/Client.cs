@@ -253,7 +253,7 @@ public class Client : NetworkBehaviour
         answerAreaText.text = result;
 
         _ignoreInputChange = false;
-        
+
         return result;
     }
 
@@ -318,6 +318,7 @@ public class Client : NetworkBehaviour
     private void ClearInputField()
     {
         answerAreaText.text = "";
+        UIManager.Instance.UpdateWordInputField("");
     }
 
     #endregion
@@ -368,9 +369,7 @@ public class Client : NetworkBehaviour
     {
         if (value >= k_winScore)
         {
-            var gm = FindAnyObjectByType<GameManager>();
-            if (gm != null)
-                gm.EndGameServerRpc();
+           
             value = 0;
         }
 
@@ -406,6 +405,10 @@ public class Client : NetworkBehaviour
         {
             hintText.gameObject.SetActive(true);
         }
+        else
+        {
+            CheckWinStateServerRpc(OwnerClientId);
+        }
 
         worldCanvas.gameObject.SetActive(true);
         UpdateInputFieldInteractability(false);
@@ -431,6 +434,17 @@ public class Client : NetworkBehaviour
         //answerAreaText.ActivateInputField();
     }
 
+    [Rpc(SendTo.Server)]
+    public void CheckWinStateServerRpc(ulong id)
+    {
+        if(CurrentScore.Value >= k_winScore)
+        {
+            var gm = FindAnyObjectByType<GameManager>();
+            if (gm != null)
+                gm.EndGameServerRpc();
+        }
+    }
+
     public void OnEnterNextRound()
     {
         if (m_otherClient == null)
@@ -441,6 +455,9 @@ public class Client : NetworkBehaviour
         if (!IsOwner)
         {
             hintText.gameObject.SetActive(false);
+        }
+        else
+        {
         }
 
         hintText.text = "Press Enter to Submit";
@@ -472,8 +489,9 @@ public class Client : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     public void UpdateConfirmClientRpc(ulong id)
     {
-        if (OwnerClientId == id)
+        if (NetworkManager.Singleton.LocalClientId == id)
         {
+            Debug.Log(($"Update Resolution Press Space Hint Text: clientID: {id}"));
             hintText.text = "";
             UIManager.Instance.UpdateResolutionPressSpaceHintText("");
         }
@@ -506,7 +524,11 @@ public class Client : NetworkBehaviour
             {
                 _roundManager.ConfirmResolutionServerRpc(OwnerClientId);
             }
-            else
+        }
+
+        if (Keyboard.current.enterKey.wasPressedThisFrame)
+        {
+            if (!_roundManager.IsResolutionPhase.Value)
             {
                 Debug.Log("SubmitAnswerServerRpc at segment: " + timeRemainingSegmentedBar.CurrentSegmentIndex + "");
                 Check(keepInput: false);
@@ -657,16 +679,16 @@ public class Client : NetworkBehaviour
 
         if (SoundManager.Instance != null)
             SoundManager.Instance.PlayTypingSfx();
-        
+
         Debug.Log($"OnLocalInputFieldChanged: {value}");
 
         string result = UpdateInputFieldText(GetNonTransparentString(value));
-        
+
         if (IsOwner)
         {
             UIManager.Instance.UpdateWordInputField(result);
         }
-        
+
         SubmitAnswerDisplayServerRpc(value);
         if (_inputDisplaySyncCoroutine != null) StopCoroutine(_inputDisplaySyncCoroutine);
         _inputDisplaySyncCoroutine = StartCoroutine(FixCaret());
@@ -691,7 +713,7 @@ public class Client : NetworkBehaviour
         sharedText = value;
         UpdateAnswerDisplayClientRpc(value);
     }
-    
+
 
     [ClientRpc]
     private void UpdateAnswerDisplayClientRpc(string value)
