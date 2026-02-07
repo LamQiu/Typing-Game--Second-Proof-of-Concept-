@@ -10102,7 +10102,7 @@ PrefabInstance:
       objectReference: {fileID: 1702441907}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: banLetterPerRound
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: bannedLettersText

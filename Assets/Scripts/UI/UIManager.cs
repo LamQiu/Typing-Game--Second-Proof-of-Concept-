@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -52,6 +54,14 @@ namespace UI
 
         public void EnterGameScreen()
         {
+            StartCoroutine(DelayEnterGameScreen());
+        }
+        
+        private const float k_delayEnterGameScreenInSeconds = 0.2f;
+
+        private IEnumerator DelayEnterGameScreen()
+        {
+            yield return new WaitForSeconds(k_delayEnterGameScreenInSeconds);
             ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             ResolutionScreenUI.Hide();
