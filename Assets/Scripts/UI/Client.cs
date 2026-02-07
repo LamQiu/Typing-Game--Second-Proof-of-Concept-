@@ -242,7 +242,7 @@ public class Client : NetworkBehaviour
         {
             if (_bannedLetters != null && _bannedLetters.Contains(char.ToLower(c)))
             {
-                result += $"<color=#FFFFFF40>{c}</color>";
+                result += $"<color=#A59D98AA>{c}</color>";
             }
             else
             {

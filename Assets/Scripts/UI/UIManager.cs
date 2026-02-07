@@ -208,7 +208,7 @@ namespace UI
                     c != ' ' &&
                     m_bannedLetters.ToLower().Contains(char.ToLower(c)))
                 {
-                    result += $"<color=#CCCCCCAA>{c}</color>";
+                    result += $"<color=#A59D98AA>{c}</color>";
                 }
                 else
                 {
