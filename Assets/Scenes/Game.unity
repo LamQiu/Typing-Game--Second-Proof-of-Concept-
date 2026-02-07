@@ -10118,11 +10118,11 @@ PrefabInstance:
       objectReference: {fileID: 1324160712}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: roundTimeLimitInSeconds
-      value: 10
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: 'roundTimes.Array.data[0]'
-      value: 10
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: timeMultiplierIndicatorImage
