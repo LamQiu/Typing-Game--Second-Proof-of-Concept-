@@ -109,7 +109,7 @@ namespace UI
 
         public void UpdateCurrentPrompt(string prompt)
         {
-            GameScreenUI.UpdateCurrentPrompt(GetTextWithTransparentColor(prompt.ToLower()));
+            GameScreenUI.UpdateCurrentPrompt((prompt.ToLower()));
         }
 
         public void UpdateGameScreenTimer(float timeT)
@@ -164,7 +164,7 @@ namespace UI
 
         public void UpdateResolutionPressSpaceHintText(string content)
         {
-            ResolutionScreenUI.UpdateResolutionPressSpaceHintText(GetTextWithTransparentColor(content));
+            ResolutionScreenUI.UpdateResolutionPressSpaceHintText((content));
         }
 
         public void UpdatePlayer1FillImage(float value, int currentScore)
@@ -199,7 +199,7 @@ namespace UI
 
         public string GetTextWithTransparentColor(string text)
         {
-            return text;
+            //return text;
             string result = "";
             for (int i = 0; i < text.Length; i++)
             {
