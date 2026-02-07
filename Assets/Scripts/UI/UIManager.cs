@@ -109,7 +109,7 @@ namespace UI
 
         public void UpdateCurrentPrompt(string prompt)
         {
-            GameScreenUI.UpdateCurrentPrompt((prompt.ToLower()));
+            GameScreenUI.UpdateCurrentPrompt(GetTextWithTransparentColor(prompt.ToLower()));
         }
 
         public void UpdateGameScreenTimer(float timeT)
