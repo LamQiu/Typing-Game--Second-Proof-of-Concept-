@@ -114,8 +114,8 @@ namespace UI
 
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            InvalidLettersText.text = "invalid letters : " + invalidLetters;
-            ResolutionInvalidLettersText.text = "invalid letters : " + invalidLetters;
+            InvalidLettersText.text = "invalid letters : " + invalidLetters.ToLower();
+            ResolutionInvalidLettersText.text = "invalid letters : " + invalidLetters.ToLower();
         }
 
         private void Update()

@@ -372,7 +372,7 @@ public class RoundManager : NetworkBehaviour
         string original = bannedLettersText.text;
         string bannedLetters = original.Replace("\r", "").Replace("\n", "");
         UIManager.Instance.UpdateBannedLetters(bannedLetters);
-        string cleaned = original.Replace("\r", "").Replace("\n", " ");
+        string cleaned = original.Replace("\r", "").Replace("\n", "  ");
         UIManager.Instance.UpdateInvalidLetters(cleaned);
     }
 

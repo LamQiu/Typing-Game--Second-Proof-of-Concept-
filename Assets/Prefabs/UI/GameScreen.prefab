@@ -6614,6 +6614,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 360697393701893380}
+  - component: {fileID: 3158569012952469202}
   m_Layer: 5
   m_Name: GameScreen
   m_TagString: Untagged
@@ -6643,6 +6644,31 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3158569012952469202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7102463849778876773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eac7c24e97154d26acace88b3cf2118f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UI.GameScreenUI
+  P1BG: {fileID: 6407565753570922352}
+  P2BG: {fileID: 6087213574706728547}
+  Player1NameText: {fileID: 1138643773794399226}
+  Player2NameText: {fileID: 771905716056140342}
+  PlayerActiveTextColor: {r: 0.93333334, g: 0.91764706, b: 0.89411765, a: 1}
+  PlayerInactiveTextColor: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
+  P1LettersCountUI: {fileID: 3337754916812318236}
+  P2LettersCountUI: {fileID: 8630711658828380498}
+  CurrentPromptText: {fileID: 7555887599330115756}
+  TimerImage: {fileID: 4836763533619062475}
+  WordInputField: {fileID: 1778308215413481034}
+  InvalidLettersText: {fileID: 4863777207169159193}
+  ResolutionInvalidLettersText: {fileID: 0}
 --- !u!1 &7225027714193955782
 GameObject:
   m_ObjectHideFlags: 0
