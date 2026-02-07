@@ -11,10 +11,6 @@ public class GameManager : NetworkBehaviour
 {
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
 
-    private void Start()
-    {
-    }
-
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void StartGameServerRpc()
     {
