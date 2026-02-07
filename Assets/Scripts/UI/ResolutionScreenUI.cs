@@ -87,6 +87,7 @@ namespace UI
 
         public void UpdatePlayer1FillImage(float value, int currentScore)
         {
+            value = Mathf.Clamp01(value);
             Player1BGFillImage.fillAmount = value;
             Player1ScoreText.text = currentScore.ToString();
             SetPlayer1ScoreTextsAnchoredPos(value);
@@ -113,6 +114,7 @@ namespace UI
 
         public void UpdatePlayer2FillImage(float value, int currentScore)
         {
+            value = Mathf.Clamp01(value);
             Player2BGFillImage.fillAmount = value;
             Player2ScoreText.text = currentScore.ToString();
             SetPlayer2ScoreTextsAnchoredPos(value);

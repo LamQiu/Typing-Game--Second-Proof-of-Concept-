@@ -87,14 +87,14 @@ namespace UI
             GameScreenUI.SetP2();
         }
 
-        public void UpdateP1LettersCountUI(int lettersCount)
+        public void UpdateP1LettersCountUI(int lettersCount, bool isOwner )
         {
-            GameScreenUI.UpdateP1LettersCountUI(lettersCount);
+            GameScreenUI.UpdateP1LettersCountUI(lettersCount, isOwner);
         }
 
-        public void UpdateP2LettersCountUI(int lettersCount)
+        public void UpdateP2LettersCountUI(int lettersCount, bool isOwner)
         {
-            GameScreenUI.UpdateP2LettersCountUI(lettersCount);
+            GameScreenUI.UpdateP2LettersCountUI(lettersCount, isOwner);
         }
 
         public void UpdateCurrentPrompt(string prompt)

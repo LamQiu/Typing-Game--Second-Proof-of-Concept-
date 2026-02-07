@@ -261,7 +261,7 @@ public class RoundManager : NetworkBehaviour
         {
             _ended = false;
             string winner =
-                PlayerManager.Instance.GetHost().CurrentScore.Value <= 0 ? "P2" : "P1";
+                PlayerManager.Instance.GetHost().CurrentScore.Value >= Client.k_winScore ? "P2" : "P1";
 
             EndGameClientRpc(winner);
             return;
@@ -461,9 +461,8 @@ public class RoundManager : NetworkBehaviour
             Client client = pm.GetClient(1);
             host.CurrentScore.Value += host.LetterCount.Value;
             client.CurrentScore.Value += client.LetterCount.Value;
-
-            host.CheckWinStateServerRpc(host.OwnerClientId);
-            client.CheckWinStateServerRpc(client.OwnerClientId);
+            
+            StartCoroutine(DelayCheckWinStateNUpdateScoreUI(host, client));
             // if (difference > 0)
             //     pm.GetClient(1).CurrentScore.Value -= difference;
             // else if (difference < 0)
@@ -478,6 +477,15 @@ public class RoundManager : NetworkBehaviour
         }
 
         UpdateResolutionTextClientRpc(text);
+    }
+    private const float k_checkWinStateDelayInSeconds = 0.1f;
+    IEnumerator DelayCheckWinStateNUpdateScoreUI(Client host, Client client)
+    {
+        yield return new WaitForSeconds(k_checkWinStateDelayInSeconds);
+        host.CheckWinStateServerRpc(host.OwnerClientId);
+        client.CheckWinStateServerRpc(client.OwnerClientId);
+        host.UpdateScoreUIClientRpc();
+        client.UpdateScoreUIClientRpc();
     }
 
     // ============================================================

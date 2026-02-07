@@ -51,23 +51,26 @@ namespace UI
             Player2NameText.color = PlayerActiveTextColor;
         }
 
-        public void UpdateP1LettersCountUI(int lettersCount)
+        public void UpdateP1LettersCountUI(int lettersCount, bool isOwner)
         {
-            UpdateLettersCountUI(P1LettersCountUI, lettersCount);
+            UpdateLettersCountUI(P1LettersCountUI, lettersCount, isOwner);
         }
 
-        public void UpdateP2LettersCountUI(int lettersCount)
+        public void UpdateP2LettersCountUI(int lettersCount, bool isOwner)
         {
-            UpdateLettersCountUI(P2LettersCountUI, lettersCount);
+            UpdateLettersCountUI(P2LettersCountUI, lettersCount, isOwner);
         }
 
-        private void UpdateLettersCountUI(GameObject letterCountUI, int lettersCount)
+        private const float k_isOwnerLetterCountScaleY = 2.5f;
+        private void UpdateLettersCountUI(GameObject letterCountUI, int lettersCount, bool isOwner)
         {
             for (int i = 0; i < letterCountUI.transform.childCount; i++)
             {
                 if (i < lettersCount)
                 {
                     letterCountUI.transform.GetChild(i).gameObject.SetActive(true);
+                    float scaleY = isOwner ? k_isOwnerLetterCountScaleY : 1;
+                    letterCountUI.transform.localScale = new Vector3(1, scaleY, 1);
                 }
                 else
                 {

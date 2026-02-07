@@ -362,7 +362,7 @@ public class Client : NetworkBehaviour
         return result;
     }
 
-    private const int k_winScore = 10;
+    public const int k_winScore = 10;
     //private const int k_maxScore = 75;
 
     private void OnCurrentScoreChanged(int prev, int value)
@@ -419,8 +419,32 @@ public class Client : NetworkBehaviour
 
         if (IsOwner)
             SubmitAnswerDisplayServerRpc(answerAreaText.text);
+        
+        if(IsOwner)
+        {
+            if (IsHost)
+            {
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                if (m_otherClient != null)
+                {
+                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                }
+            }
+            else if (IsClient)
+            {
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                if (m_otherClient != null)
+                {
+                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                }
+            }
+        }
+    }
 
-        if (IsOwner)
+    [Rpc(SendTo.ClientsAndHost)]
+    public void UpdateScoreUIClientRpc()
+    {
+        if(IsOwner)
         {
             if (IsHost)
             {
@@ -557,20 +581,20 @@ public class Client : NetworkBehaviour
 
         if (IsHost)
         {
-            UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value);
+            UIManager.Instance.UpdateP1LettersCountUI(LetterCount.Value, true);
             if (m_otherClient != null)
             {
-                UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value);
+                UIManager.Instance.UpdateP2LettersCountUI(m_otherClient.LetterCount.Value, false);
             }
         }
         else if (IsClient)
         {
             if (m_otherClient != null)
             {
-                UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value);
+                UIManager.Instance.UpdateP1LettersCountUI(m_otherClient.LetterCount.Value, false);
             }
 
-            UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value);
+            UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value, true);
         }
 
         if (EventSystem.current.currentSelectedGameObject != answerAreaText.gameObject && !_isResoluting)
