@@ -418,7 +418,7 @@ public class Client : NetworkBehaviour
         _isAnswering = false;
 
         if (IsOwner)
-            SubmitAnswerDisplayServerRpc(answerAreaText.text);
+            SubmitAnswerDisplayServerRpc(GetNonTransparentString(answerAreaText.text));
         
         if(IsOwner)
         {
@@ -716,7 +716,7 @@ public class Client : NetworkBehaviour
             UIManager.Instance.UpdateWordInputField(result);
         }
 
-        SubmitAnswerDisplayServerRpc(value);
+        SubmitAnswerDisplayServerRpc(GetNonTransparentString(value));
         if (_inputDisplaySyncCoroutine != null) StopCoroutine(_inputDisplaySyncCoroutine);
         _inputDisplaySyncCoroutine = StartCoroutine(FixCaret());
 
