@@ -362,7 +362,7 @@ public class Client : NetworkBehaviour
         return result;
     }
 
-    public const int k_winScore = 10;
+    public const int k_winScore = 30;
     //private const int k_maxScore = 75;
 
     private void OnCurrentScoreChanged(int prev, int value)
