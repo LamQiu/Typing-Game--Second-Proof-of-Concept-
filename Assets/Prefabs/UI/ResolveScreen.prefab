@@ -250,7 +250,7 @@ RectTransform:
   m_GameObject: {fileID: 863600431900823117}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7739342966568710639}
@@ -684,6 +684,10 @@ MonoBehaviour:
   Player2NameText: {fileID: 8314032130470436353}
   Player1FillImage: {fileID: 8659736698046443530}
   Player2FillImage: {fileID: 1124005955958680735}
+  Player1BGFillImage: {fileID: 0}
+  Player2BGFillImage: {fileID: 0}
+  Player1ScoreText: {fileID: 0}
+  Player2ScoreText: {fileID: 0}
   PlayerActiveTextColor: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
   PlayerInactiveTextColor: {r: 0.99607843, g: 0.99607843, b: 0.99607843, a: 1}
   ResolutionPressSpaceHintText: {fileID: 8552143209637965729}
