@@ -10180,9 +10180,17 @@ PrefabInstance:
       propertyPath: ResolutionScreenUI
       value: 
       objectReference: {fileID: 1465362572}
+    - target: {fileID: 6662262897847450785, guid: c66087299efbc417088a621238896aa5, type: 3}
+      propertyPath: m_Volume
+      value: 0.4
+      objectReference: {fileID: 0}
     - target: {fileID: 7536887141762829346, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: m_Name
       value: Managers
+      objectReference: {fileID: 0}
+    - target: {fileID: 8468540343659854640, guid: c66087299efbc417088a621238896aa5, type: 3}
+      propertyPath: m_Volume
+      value: 0.4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

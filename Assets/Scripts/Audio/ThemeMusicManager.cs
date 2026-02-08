@@ -46,7 +46,7 @@ namespace Audio
 
         public void PlayScoringTheme()
         {
-            PlayTheme(ScoringTheme, false);
+            PlayTheme(ScoringTheme, true);
         }
 
         private void PlayTheme(AudioClip clip, bool loop)
