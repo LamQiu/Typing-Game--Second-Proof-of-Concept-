@@ -572,6 +572,7 @@ public class RoundManager : NetworkBehaviour
         winText.text = playerID + " Wins";
 
         UIManager.Instance.UpdateWinText(playerID + " wins");
+        ThemeMusicManager.Instance.PlayScoringTheme();
     }
 
     // ============================================================
