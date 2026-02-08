@@ -7,6 +7,7 @@ using TMPro;
 using UI;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class RoundManager : NetworkBehaviour
@@ -63,6 +64,8 @@ public class RoundManager : NetworkBehaviour
 
     private readonly List<ulong> submittedAnswerClients = new List<ulong>();
     private readonly List<ulong> confirmedResolutionClients = new List<ulong>();
+    
+    private bool m_isGameEnd = false;
 
     // ============================================================
     // Unity Lifecycle
@@ -150,6 +153,23 @@ public class RoundManager : NetworkBehaviour
         }
 
         HandleRoundPhase();
+
+        if (IsServer)
+        {
+            if(Keyboard.current.spaceKey.wasPressedThisFrame)
+            {
+                if (m_isGameEnd)
+                {
+                    GameManager gm = FindAnyObjectByType<GameManager>();
+                    if (gm != null)
+                    {
+                        gm.NetworkReloadScene();
+                    }
+
+                    m_isGameEnd = false;
+                }
+            }
+        }
     }
 
     // ============================================================
@@ -262,6 +282,7 @@ public class RoundManager : NetworkBehaviour
         if (_ended)
         {
             _ended = false;
+            m_isGameEnd = true;
             string winner =
                 PlayerManager.Instance.GetHost().CurrentScore.Value >= Client.k_winScore ? "P2" : "P1";
 

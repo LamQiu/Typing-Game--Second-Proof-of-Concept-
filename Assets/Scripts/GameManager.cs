@@ -6,10 +6,17 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using Utilities;
 
 public class GameManager : NetworkBehaviour
 {
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
+    private SceneReloader m_sceneReloader;
+
+    private void Awake()
+    {
+        m_sceneReloader = GetComponent<SceneReloader>();
+    }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void StartGameServerRpc()
@@ -22,6 +29,11 @@ public class GameManager : NetworkBehaviour
     public void EndGameServerRpc()
     {
         GameStartedState.Value = false;
+    }
+
+    public void NetworkReloadScene()
+    {
+        m_sceneReloader.ReloadCurrentScene();
     }
     // public override void OnNetworkSpawn()
     // {
