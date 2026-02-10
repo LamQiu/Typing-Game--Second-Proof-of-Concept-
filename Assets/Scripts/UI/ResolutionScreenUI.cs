@@ -22,14 +22,22 @@ namespace UI
         [SerializeField] private TMP_Text Player2ScoreText;
         [SerializeField] private Color PlayerActiveTextColor;
         [SerializeField] private Color PlayerInactiveTextColor;
+        [SerializeField] private TMP_Text WinScoreText;
         public TMP_Text ResolutionPressSpaceHintText;
 
         private void Awake()
+        {
+            Reset();
+        }
+
+        public void Reset()
         {
             Player1FillImage.fillAmount = 0;
             Player2FillImage.fillAmount = 0;
             Player1BGFillImage.fillAmount = 0;
             Player2BGFillImage.fillAmount = 0;
+            
+            WinScoreText.text = GameManager.s_WinGameScore.ToString();
 
             SetPlayer1ScoreTextsAnchoredPos(0);
             SetPlayer2ScoreTextsAnchoredPos(0);
@@ -85,17 +93,17 @@ namespace UI
         private const float k_fillImageDelayInSeconds = 0.8f;
         private const float k_fillImageLerpTimeInSeconds = 0.8f;
 
-        public void UpdatePlayer1FillImage(float value, int currentScore)
+        public void UpdatePlayer1FillImage(float fill, int currentScore)
         {
-            value = Mathf.Clamp01(value);
-            Player1BGFillImage.fillAmount = value;
+            fill = Mathf.Clamp01(fill);
+            Player1BGFillImage.fillAmount = fill;
             Player1ScoreText.text = currentScore.ToString();
-            SetPlayer1ScoreTextsAnchoredPos(value);
+            SetPlayer1ScoreTextsAnchoredPos(fill);
 
             if (gameObject.activeSelf)
             {
                 if (m_updateP1FillImageCoroutine != null) StopCoroutine(m_updateP1FillImageCoroutine);
-                m_updateP1FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player1FillImage, value));
+                m_updateP1FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player1FillImage, fill));
             }
         }
 

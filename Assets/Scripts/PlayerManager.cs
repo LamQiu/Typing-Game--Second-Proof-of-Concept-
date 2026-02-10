@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlayerManager : NetworkBehaviour
 {
+    public static readonly int s_GamePlayerCount = 2;
+    
     public Vector2 hostOffset;
     public Vector2 clientOffset;
     
@@ -22,7 +24,6 @@ public class PlayerManager : NetworkBehaviour
     {
         if (IsServer)
         {
-            // 监听连接事件
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         }

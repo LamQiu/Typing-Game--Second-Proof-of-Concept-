@@ -32,6 +32,8 @@ namespace UI
 
         private void OnCommandInputFieldEndEdit(string content)
         {
+            if(UIManager.Instance == null) return;
+            
             if (content.ToLower() == UIManager.Instance.MainMenuCommandInputFieldEnterPlayKey)
             {
                 UIManager.Instance.EnterConnectionScreen();

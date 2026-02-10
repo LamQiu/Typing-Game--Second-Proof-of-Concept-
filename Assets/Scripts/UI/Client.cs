@@ -100,7 +100,7 @@ public class Client : NetworkBehaviour
 
         playerIndexText.text = "P" + ((int)OwnerClientId + 1);
 
-        UpdateTimerUI(20);
+        //UpdateTimerUI(20);
 
         // Host / Client UI difference
         if (OwnerClientId == 0)
@@ -207,6 +207,7 @@ public class Client : NetworkBehaviour
 
     private void UpdateTimerUI(float timerRemainingInSeconds)
     {
+        //Debug.Log($"UpdateTimerUI: {timerRemainingInSeconds}");
         UIManager.Instance.UpdateGameScreenTimer(timerRemainingInSeconds / _roundManager.RoundTimeLimitInSeconds);
         timeRemainingSegmentedBar.UpdateTimeRemainingBar(timerRemainingInSeconds);
     }
@@ -343,7 +344,7 @@ public class Client : NetworkBehaviour
         // {
         //     //UIManager.Instance.UpdateP2LettersCountUI(value);
         // }
-        Debug.Log($"Letter Count Changed from {prev} to {value}");
+        //Debug.Log($"Letter Count Changed from {prev} to {value}");
     }
 
     private Client GetOtherClient()
@@ -367,7 +368,7 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
-        if (value >= k_winScore)
+        if (value >= GameManager.s_WinGameScore)
         {
            
             value = 0;
@@ -376,16 +377,7 @@ public class Client : NetworkBehaviour
         currentHealthText.text = string.Format(k_currentHealthTextFormat, value);
         healthBarImage.fillAmount = (float)value / maxHealth;
 
-        if (IsHost)
-        {
-            UIManager.Instance.UpdatePlayer1FillImage(value / (float)k_winScore, CurrentScore.Value);
-            UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-        }
-        else if (IsClient)
-        {
-            UIManager.Instance.UpdatePlayer2FillImage(value / (float)k_winScore, CurrentScore.Value);
-            UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-        }
+        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
 
     private void OnPromptChanged(PromptGenerator.Prompt prev, PromptGenerator.Prompt value)
@@ -420,25 +412,27 @@ public class Client : NetworkBehaviour
         if (IsOwner)
             SubmitAnswerDisplayServerRpc(GetNonTransparentString(answerAreaText.text));
         
-        if(IsOwner)
-        {
-            if (IsHost)
-            {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
-                if (m_otherClient != null)
-                {
-                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-                }
-            }
-            else if (IsClient)
-            {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
-                if (m_otherClient != null)
-                {
-                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-                }
-            }
-        }
+        // if(IsOwner)
+        // {
+        //     if (IsHost)
+        //     {
+        //         UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+        //         if (m_otherClient != null)
+        //         {
+        //             UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+        //         }
+        //     }
+        //     else if (IsClient)
+        //     {
+        //         UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+        //         if (m_otherClient != null)
+        //         {
+        //             UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+        //         }
+        //     }
+        // }
+        
+        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -448,18 +442,18 @@ public class Client : NetworkBehaviour
         {
             if (IsHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore, CurrentScore.Value);
                 if (m_otherClient != null)
                 {
-                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore, m_otherClient.CurrentScore.Value);
                 }
             }
             else if (IsClient)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore, CurrentScore.Value);
                 if (m_otherClient != null)
                 {
-                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
+                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore, m_otherClient.CurrentScore.Value);
                 }
             }
         }
@@ -481,7 +475,7 @@ public class Client : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void CheckWinStateServerRpc(ulong id)
     {
-        if(CurrentScore.Value >= k_winScore)
+        if(CurrentScore.Value >= GameManager.s_WinGameScore)
         {
             var gm = FindAnyObjectByType<GameManager>();
             if (gm != null)

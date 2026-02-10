@@ -16,7 +16,7 @@ public class RoundManager : NetworkBehaviour
     // Inspector Fields
     // ============================================================
     public float[] roundTimes;
-    public float roundTimeLimitInSeconds = 20f;
+    public float roundTimeLimitInSeconds;
     public int banLetterPerRound = 3;
     private int _currentRoundIndex = 0;
     public List<string> submittedAnswers = new List<string>();
@@ -102,12 +102,12 @@ public class RoundManager : NetworkBehaviour
         BG.SetActive(true);
         if (IsServer)
         {
-            roundTimeLimitInSeconds = roundTimes.Length > 0 ? roundTimes[0] : 20f;
             RoundTimeRemainingInSeconds.Value = roundTimeLimitInSeconds;
             ResolutionTimeRemaining.Value = resoluteTimeInSeconds;
             IsResolutionPhase.Value = false;
             confirmedResolutionClients.Clear();
             submittedAnswerClients.Clear();
+            m_isGameEnd = false;
         }
 
         _started = false;
@@ -129,8 +129,7 @@ public class RoundManager : NetworkBehaviour
         submittedAnswers.Clear();
         banLetterBG.gameObject.SetActive(false);
         bannedLettersText.text = "";
-
-
+        
         winImage.SetActive(false);
         winText.text = "";
         titleImage.gameObject.SetActive(true);
@@ -146,13 +145,14 @@ public class RoundManager : NetworkBehaviour
     // ============================================================
     private void Update()
     {
-        if (IsResolutionPhase.Value)
+        if (IsResolutionPhase.Value && !m_isGameEnd)
         {
             HandleResolutionPhase();
             return;
         }
-
-        HandleRoundPhase();
+        
+        if (!m_isGameEnd)
+            HandleRoundPhase();
 
         if (IsServer)
         {
@@ -163,7 +163,7 @@ public class RoundManager : NetworkBehaviour
                     GameManager gm = FindAnyObjectByType<GameManager>();
                     if (gm != null)
                     {
-                        gm.NetworkReloadScene();
+                        gm.ResetGame();
                     }
 
                     m_isGameEnd = false;
@@ -243,7 +243,7 @@ public class RoundManager : NetworkBehaviour
 
         // Set Round Time
         _currentRound = Mathf.Clamp(_currentRound + 1, 0, roundTimes.Length - 1);
-        roundTimeLimitInSeconds = roundTimes[_currentRound];
+        //roundTimeLimitInSeconds = roundTimes[_currentRound];
 
         EnterNextRoundClientRpc();
 
@@ -283,10 +283,12 @@ public class RoundManager : NetworkBehaviour
         {
             _ended = false;
             m_isGameEnd = true;
-            string winner =
-                PlayerManager.Instance.GetHost().CurrentScore.Value >= Client.k_winScore ? "P2" : "P1";
+            bool isHostWin = PlayerManager.Instance.GetHost().CurrentScore.Value > PlayerManager.Instance.GetClient(1).CurrentScore.Value;
+            bool isDraw = PlayerManager.Instance.GetHost().CurrentScore.Value == PlayerManager.Instance.GetClient(1).CurrentScore.Value;
+            string winText =
+                isDraw ? "Both" : isHostWin ? "P1" : "P2";
 
-            EndGameClientRpc(winner);
+            EndGameClientRpc(winText);
             return;
         }
 

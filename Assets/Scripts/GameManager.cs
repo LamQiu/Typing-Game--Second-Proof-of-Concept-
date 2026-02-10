@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UI;
 using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -10,6 +11,8 @@ using Utilities;
 
 public class GameManager : NetworkBehaviour
 {
+    public static int s_WinGameScore = 50;
+    
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
     private SceneReloader m_sceneReloader;
 
@@ -34,6 +37,20 @@ public class GameManager : NetworkBehaviour
     public void NetworkReloadScene()
     {
         m_sceneReloader.ReloadCurrentScene();
+        //NetworkReloadSceneClientRpc();
+    }
+    
+    [Rpc(SendTo.ClientsAndHost)]
+    public void NetworkReloadSceneClientRpc()
+    {
+        m_sceneReloader.ReloadCurrentScene();
+        StartCoroutine(DelayReloadSceneRoutine());
+    }
+
+    private IEnumerator DelayReloadSceneRoutine()
+    {
+        yield return null;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
     // public override void OnNetworkSpawn()
     // {
@@ -65,16 +82,18 @@ public class GameManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.digit1Key.wasPressedThisFrame && false)
         {
             //StartCoroutine(RestartGame());
-            StartCoroutine(GameRestart());
-
-            ResetClientRpc();
-            
-            Debug.Log("Game Reset!");
-
+            ResetGame();
         }
+    }
+
+    public void ResetGame()
+    {
+        StartCoroutine(GameRestart());
+        ResetClientRpc();
+        Debug.Log("Game Reset!");
     }
     [Rpc(SendTo.ClientsAndHost)]
     private void ResetClientRpc()
@@ -90,6 +109,10 @@ public class GameManager : NetworkBehaviour
         {
             client.ResetClient();
         }
+        
+        UIManager.Instance.ResetUI();
+        UIManager.Instance.EnterWinScreen();
+        UIManager.Instance.EnterGameScreen();
     }
 
     private IEnumerator GameRestart()

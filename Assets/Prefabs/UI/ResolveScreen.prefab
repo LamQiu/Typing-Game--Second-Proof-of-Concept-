@@ -690,6 +690,7 @@ MonoBehaviour:
   Player2ScoreText: {fileID: 0}
   PlayerActiveTextColor: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
   PlayerInactiveTextColor: {r: 0.99607843, g: 0.99607843, b: 0.99607843, a: 1}
+  WinScoreText: {fileID: 6385443476112125421}
   ResolutionPressSpaceHintText: {fileID: 8552143209637965729}
 --- !u!1 &1633746430830244881
 GameObject:

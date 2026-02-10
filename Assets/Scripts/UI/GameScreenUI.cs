@@ -103,7 +103,8 @@ namespace UI
         {
             WordInputField.SetTextWithoutNotify(content);
             if (m_wordInputDisplaySyncCoroutine != null) StopCoroutine(m_wordInputDisplaySyncCoroutine);
-            m_wordInputDisplaySyncCoroutine = StartCoroutine(FixCaret());
+            if(gameObject.activeSelf)
+                m_wordInputDisplaySyncCoroutine = StartCoroutine(FixCaret());
         }
         private IEnumerator FixCaret()
         {

@@ -29,15 +29,23 @@ namespace UI
         {
             base.Awake();
         }
-
-        private void Start()
+        
+        public void ResetUI()
         {
-            MainMenuUI.Show();
+            MainMenuUI.Hide();
             ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             GameScreenUI.Hide();
             ResolutionScreenUI.Hide();
             WinScreen.Hide();
+            
+            ResolutionScreenUI.Reset();
+        }
+
+        private void Start()
+        {
+            ResetUI();
+            MainMenuUI.Show();
         }
 
         public void EnterConnectionScreen()
@@ -65,6 +73,7 @@ namespace UI
             ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             ResolutionScreenUI.Hide();
+            WinScreen.Hide();
             GameScreenUI.Show();
             GameScreenUI.ClearWordInputField();
         }
@@ -167,14 +176,29 @@ namespace UI
             ResolutionScreenUI.UpdateResolutionPressSpaceHintText((content));
         }
 
-        public void UpdatePlayer1FillImage(float value, int currentScore)
+        public void UpdatePlayer1FillImage(float fill, int currentScore)
         {
-            ResolutionScreenUI.UpdatePlayer1FillImage(value, currentScore);
+            ResolutionScreenUI.UpdatePlayer1FillImage(fill, currentScore);
         }
 
-        public void UpdatePlayer2FillImage(float value, int currentScore)
+        public void UpdatePlayer2FillImage(float fill, int currentScore)
         {
-            ResolutionScreenUI.UpdatePlayer2FillImage(value, currentScore);
+            ResolutionScreenUI.UpdatePlayer2FillImage(fill, currentScore);
+        }
+
+        public void UpdatePlayerFillImage(bool isHost, int thisClientScore, int otherClientScore)
+        {
+            float winScore = GameManager.s_WinGameScore;
+            if (isHost)
+            {
+                UIManager.Instance.UpdatePlayer1FillImage(thisClientScore / winScore, thisClientScore);
+                UIManager.Instance.UpdatePlayer2FillImage(otherClientScore / winScore, otherClientScore);
+            }
+            else
+            {
+                UIManager.Instance.UpdatePlayer2FillImage(thisClientScore / winScore, thisClientScore);
+                UIManager.Instance.UpdatePlayer1FillImage(otherClientScore / winScore, otherClientScore);
+            }
         }
 
         #endregion
