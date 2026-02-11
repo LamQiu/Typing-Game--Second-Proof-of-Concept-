@@ -54,10 +54,10 @@ namespace UI
             ConnectionScreenUI.Show();
         }
 
-        public void EnterWaitingScreen()
+        public void EnterWaitingScreen(string roomID)
         {
             ConnectionScreenUI.Hide();
-            WaitingScreenUI.Show();
+            WaitingScreenUI.Show(roomID);
         }
 
         public void EnterGameScreen()

@@ -69,7 +69,7 @@ namespace UI
             CreateSessionButton.onClick.Invoke();
             CreateSessionWidget.SetActive(false);
             QuickJoinWidget.SetActive(false);
-            UIManager.Instance.EnterWaitingScreen();
+            UIManager.Instance.EnterWaitingScreen(content);
         }
     }
 }
