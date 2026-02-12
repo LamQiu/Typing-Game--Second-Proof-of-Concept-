@@ -150,7 +150,8 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
-        if (value >= GameManager.s_WinGameScore)
+        Debug.Log($"OnCurrentScoreChanged: {value}");
+        if (value >= GameManager.Instance.WinGameScore)
         {
             value = 0;
         }
@@ -169,19 +170,7 @@ public class Client : NetworkBehaviour
 
     public void OnEnterResolutionPhase()
     {
-        Debug.Log("Enter Resolution Phase Client");
-
-
-        if (IsOwner)
-        {
-            CheckWinStateServerRpc(OwnerClientId);
-        }
-
-        HintText = "Press Enter to Continue";
-
-        // if (IsOwner)
-        //     SubmitAnswerDisplayServerRpc(GetNonTransparentString(answerAreaText.text));
-
+        CheckWinStateServerRpc(OwnerClientId);
         UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
 
@@ -192,30 +181,30 @@ public class Client : NetworkBehaviour
         {
             if (IsHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
                     CurrentScore.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer2FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
                         m_otherClient.CurrentScore.Value);
                 }
             }
             else if (IsClient)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
                     CurrentScore.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer1FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
                         m_otherClient.CurrentScore.Value);
                 }
             }
         }
     }
 
-    public void OnEndResolutionPhase(List<char> bannedLetters)
+    public void OnEndResolutionPhase()
     {
         UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
         ClearCurrentAnswer();
@@ -224,7 +213,7 @@ public class Client : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void CheckWinStateServerRpc(ulong id)
     {
-        if (CurrentScore.Value >= GameManager.s_WinGameScore)
+        if (CurrentScore.Value >= GameManager.Instance.WinGameScore)
         {
             GameManager.Instance.EndGameServerRpc();
         }
@@ -237,28 +226,24 @@ public class Client : NetworkBehaviour
             m_otherClient = GetOtherClient();
         }
 
-        HintText = "Press Enter to Submit";
+        HintText = "press enter to submit";
 
-        if (IsOwner)
+        if (IsHost)
         {
-            UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
-            if (IsHost)
-            {
-                UIManager.Instance.SetP1();
-                UIManager.Instance.ResolutionScreenSetP1();
-            }
-            else if (IsClient)
-            {
-                UIManager.Instance.SetP2();
-                UIManager.Instance.ResolutionScreenSetP2();
-            }
-
-            LetterCount.Value = 0;
+            UIManager.Instance.SetP1();
+            UIManager.Instance.ResolutionScreenSetP1();
+        }
+        else if (IsClient)
+        {
+            UIManager.Instance.SetP2();
+            UIManager.Instance.ResolutionScreenSetP2();
         }
 
+        LetterCount.Value = 0;
         _checkValid = false;
-
-        //TrySubmitAnswer();
+        
+        UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
+        UIManager.Instance.UpdateGameScreenHintText(HintText);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -307,6 +292,8 @@ public class Client : NetworkBehaviour
                 {
                     ClearCurrentAnswer();
                 }
+
+                UIManager.Instance.UpdateGameScreenHintText(HintText);
             }
         }
 
@@ -346,14 +333,14 @@ public class Client : NetworkBehaviour
         bool isAnswerValidInDictionary = _wordChecker.CheckWordDictionaryValidity(answer);
         if (!isAnswerValidInDictionary)
         {
-            HintText = $"invalid word {m_answer}. try again";
+            HintText = $"invalid word \"{answer}\". try again";
             return false;
         }
 
         bool isAnswerValidForCurrentPrompt = _wordChecker.CheckWordPromptValidity(answer, _currentPrompt);
         if (!isAnswerValidForCurrentPrompt)
         {
-            HintText = $"word {answer} doesn't meet criteria. try again";
+            HintText = $"word \"{answer}\" doesn't match the prompt. try again";
             return false;
         }
 

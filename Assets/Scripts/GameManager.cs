@@ -11,6 +11,7 @@ using Utilities;
 
 public class GameManager : NetworkSingleton<GameManager>
 {
+    public int WinGameScore = 50;
     public static int s_WinGameScore = 50;
     
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();

@@ -145,9 +145,14 @@ namespace UI
             GameScreenUI.UpdateAnswerInputFieldInteractability(interactable);
         }
 
-        public void UpdateInvalidLetters(string invalidLetters)
+        public void UpdateInvalidLettersText(string invalidLetters)
         {
-            GameScreenUI.UpdateInvalidLetters((invalidLetters));
+            GameScreenUI.UpdateInvalidLettersText((invalidLetters));
+        }
+        
+        public void UpdateGameScreenHintText(string hint)
+        {
+            GameScreenUI.UpdateHintText(hint);
         }
 
         #endregion
@@ -192,16 +197,16 @@ namespace UI
 
         public void UpdatePlayerFillImage(bool isHost, int thisClientScore, int otherClientScore)
         {
-            float winScore = GameManager.s_WinGameScore;
+            float winScore = GameManager.Instance.WinGameScore;
             if (isHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(thisClientScore / winScore, thisClientScore);
-                UIManager.Instance.UpdatePlayer2FillImage(otherClientScore / winScore, otherClientScore);
+                UpdatePlayer1FillImage(thisClientScore / winScore, thisClientScore);
+                UpdatePlayer2FillImage(otherClientScore / winScore, otherClientScore);
             }
             else
             {
-                UIManager.Instance.UpdatePlayer2FillImage(thisClientScore / winScore, thisClientScore);
-                UIManager.Instance.UpdatePlayer1FillImage(otherClientScore / winScore, otherClientScore);
+                UpdatePlayer2FillImage(thisClientScore / winScore, thisClientScore);
+                UpdatePlayer1FillImage(otherClientScore / winScore, otherClientScore);
             }
         }
 

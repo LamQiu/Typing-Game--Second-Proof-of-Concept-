@@ -19,8 +19,6 @@ public class RoundManager : NetworkBehaviour
     public int BanLetterAtStartOfResolutionPhaseOfRound = 3;
     private int m_currentRoundIndex = 0;
     public List<string> SubmittedAnswers = new List<string>();
-    private readonly List<char> m_bannedLetters = new List<char>();
-
     // ============================================================
     // Network Variables
     // ============================================================
@@ -78,8 +76,9 @@ public class RoundManager : NetworkBehaviour
         _ended = false;
         _promptGenerated = false;
         _startResolute = false;
-        m_bannedLetters.Clear();
+        m_bannedLettersText = "";
         UIManager.Instance.MarkBannedLetters("");
+        UIManager.Instance.UpdateInvalidLettersText("");
         SubmittedAnswers.Clear();
 
         m_usedAnswers.Clear();
@@ -97,9 +96,6 @@ public class RoundManager : NetworkBehaviour
         Debug.Log("RoundManager has been reset.");
     }
 
-    // ============================================================
-    // Update Loop (Server Logic Only)
-    // ============================================================
     private void Update()
     {
         if (IsResolutionPhase.Value && !m_isGameEnd)
@@ -243,7 +239,7 @@ public class RoundManager : NetworkBehaviour
         }
 
         EnterNextRound();
-        EndResolutionPhaseClientRpc(m_bannedLetters.ToArray());
+        EndResolutionPhaseClientRpc();
     }
 
     // ============================================================
@@ -305,7 +301,7 @@ public class RoundManager : NetworkBehaviour
         {
             char letter = group.Key;
 
-            if (!m_bannedLetters.Contains(letter))
+            if (!m_bannedLettersText.Contains(letter))
             {
                 selectedLetter = letter;
                 break;
@@ -318,7 +314,6 @@ public class RoundManager : NetworkBehaviour
         }
         else
         {
-            m_bannedLetters.Add(selectedLetter);
             UpdateBannedLettersTextClientRpc(selectedLetter);
             Debug.Log($"Banned letter {selectedLetter}");
         }
@@ -334,7 +329,7 @@ public class RoundManager : NetworkBehaviour
         m_bannedLettersText = m_bannedLettersText.ToLower();
         string bannedLetters = m_bannedLettersText;
         UIManager.Instance.MarkBannedLetters(bannedLetters);
-        UIManager.Instance.UpdateInvalidLetters(bannedLetters);
+        UIManager.Instance.UpdateInvalidLettersText(bannedLetters);
     }
 
     public int GetValidLetterCount(string text)
@@ -472,7 +467,12 @@ public class RoundManager : NetworkBehaviour
         ThemeMusicManager.Instance.PlayScoringTheme();
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
-            c.OnEnterResolutionPhase();
+        {
+            if(c.IsOwner)
+            {
+                c.OnEnterResolutionPhase();
+            }
+        }
 
         UIManager.Instance.EnterResolutionScreen();
         UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
@@ -481,10 +481,10 @@ public class RoundManager : NetworkBehaviour
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void EndResolutionPhaseClientRpc(char[] bannedLetters)
+    private void EndResolutionPhaseClientRpc()
     {
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
-            c.OnEndResolutionPhase(bannedLetters.ToList());
+            c.OnEndResolutionPhase();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -494,7 +494,12 @@ public class RoundManager : NetworkBehaviour
         m_localRoundTimeRemainingInSeconds = RoundTimeLimitInSeconds;
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
-            c.OnEnterNextRound();
+        {
+            if(c.IsOwner)
+            {
+                c.OnEnterNextRound();
+            }
+        }
 
         UIManager.Instance.EnterGameScreen();
         UIManager.Instance.UpdateAnswerInputFieldInteractability(true);

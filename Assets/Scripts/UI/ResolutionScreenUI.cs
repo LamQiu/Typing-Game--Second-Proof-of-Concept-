@@ -37,7 +37,7 @@ namespace UI
             Player1BGFillImage.fillAmount = 0;
             Player2BGFillImage.fillAmount = 0;
             
-            WinScoreText.text = GameManager.s_WinGameScore.ToString();
+            WinScoreText.text = GameManager.Instance.WinGameScore.ToString();
 
             SetPlayer1ScoreTextsAnchoredPos(0);
             SetPlayer2ScoreTextsAnchoredPos(0);

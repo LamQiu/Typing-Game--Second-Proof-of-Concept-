@@ -22,11 +22,12 @@ namespace UI
         public TMP_InputField AnswerInputField;
         [SerializeField] private TMP_Text InvalidLettersText;
         [SerializeField] private TMP_Text ResolutionInvalidLettersText;
+        [SerializeField] private TMP_Text HintText;
 
 
         private void Awake()
         {
-            UpdateInvalidLetters("");
+            UpdateInvalidLettersText("");
         }
 
         public void Show()
@@ -126,7 +127,7 @@ namespace UI
             AnswerInputField.interactable = interactable;
         }
 
-        public void UpdateInvalidLetters(string invalidLetters)
+        public void UpdateInvalidLettersText(string invalidLetters)
         {
             string spaced = string.Join("  ", invalidLetters.ToLower().ToCharArray());
             string prefix = UIManager.Instance.GetTextWithTransparentColor("invalid letters:  ");
@@ -134,6 +135,11 @@ namespace UI
 
             InvalidLettersText.text = prefix + spacedWithTransparentColor;
             ResolutionInvalidLettersText.text = prefix + spacedWithTransparentColor;
+        }
+        
+        public void UpdateHintText(string hint)
+        {
+            HintText.text = hint;
         }
 
         private void Update()
