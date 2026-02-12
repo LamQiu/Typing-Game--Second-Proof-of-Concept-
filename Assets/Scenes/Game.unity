@@ -4805,7 +4805,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: BanLetterAtStartOfResolutionPhaseOfRound
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4474702212909272592, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: GlobalObjectIdHash
@@ -4845,7 +4845,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6861691028035311343, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: WinGameScore
-      value: 5
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7536887141762829346, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: m_Name
