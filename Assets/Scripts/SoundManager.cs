@@ -27,7 +27,7 @@ public class SoundManager : NetworkBehaviour
 
     private void Start()
     {
-        PlayTitleBgm();
+        //PlayTitleBgm();
     }
 
     public void PlayTitleBgm()
