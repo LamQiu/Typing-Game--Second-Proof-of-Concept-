@@ -19,7 +19,7 @@ namespace UI
         [SerializeField] private GameObject P2LettersCountUI;
         [SerializeField] private TMP_Text CurrentPromptText;
         [SerializeField] private Image TimerImage;
-        [SerializeField] private TMP_InputField WordInputField;
+        public TMP_InputField AnswerInputField;
         [SerializeField] private TMP_Text InvalidLettersText;
         [SerializeField] private TMP_Text ResolutionInvalidLettersText;
 
@@ -32,7 +32,7 @@ namespace UI
         public void Show()
         {
             gameObject.SetActive(true);
-            WordInputField.ActivateInputField();
+            AnswerInputField.ActivateInputField();
         }
 
         public void Hide()
@@ -67,6 +67,7 @@ namespace UI
         }
 
         private const float k_isOwnerLetterCountScaleY = 2.5f;
+
         private void UpdateLettersCountUI(GameObject letterCountUI, int lettersCount, bool isOwner)
         {
             for (int i = 0; i < letterCountUI.transform.childCount; i++)
@@ -94,46 +95,53 @@ namespace UI
             TimerImage.fillAmount = timeT;
         }
 
-        public void AddListenerOnWordInputField(UnityAction<string> onWordSubmit)
+        public void AddListenerToAnswerInputField(UnityAction<string> onWordSubmit)
         {
-            WordInputField.onValueChanged.AddListener(onWordSubmit);
+            AnswerInputField.onValueChanged.AddListener(onWordSubmit);
         }
+
         private Coroutine m_wordInputDisplaySyncCoroutine;
-        public void UpdateWordInputField(string content)
+
+        public void UpdateAnswerInputField(string content)
         {
-            WordInputField.SetTextWithoutNotify(content);
+            AnswerInputField.SetTextWithoutNotify(content);
             if (m_wordInputDisplaySyncCoroutine != null) StopCoroutine(m_wordInputDisplaySyncCoroutine);
-            if(gameObject.activeSelf)
+            if (gameObject.activeSelf)
                 m_wordInputDisplaySyncCoroutine = StartCoroutine(FixCaret());
         }
+
         private IEnumerator FixCaret()
         {
             yield return null;
-            WordInputField.MoveTextEnd(false);
+            AnswerInputField.MoveTextEnd(false);
         }
 
         public void ClearWordInputField()
         {
-            WordInputField.text = "";
+            AnswerInputField.text = "";
         }
 
-        public void UpdateCurrentWordInputFieldInteractability(bool interactable)
+        public void UpdateAnswerInputFieldInteractability(bool interactable)
         {
-            WordInputField.interactable = interactable;
+            AnswerInputField.interactable = interactable;
         }
 
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            InvalidLettersText.text = UIManager.Instance.GetTextWithTransparentColor("invalid letters:  ") + invalidLetters.ToLower();
-            ResolutionInvalidLettersText.text = UIManager.Instance.GetTextWithTransparentColor("invalid letters:  ") + invalidLetters.ToLower();
+            string spaced = string.Join("  ", invalidLetters.ToLower().ToCharArray());
+            string prefix = UIManager.Instance.GetTextWithTransparentColor("invalid letters:  ");
+            string spacedWithTransparentColor = UIManager.Instance.GetTextWithTransparentColor(spaced);
+
+            InvalidLettersText.text = prefix + spacedWithTransparentColor;
+            ResolutionInvalidLettersText.text = prefix + spacedWithTransparentColor;
         }
 
         private void Update()
         {
             if (gameObject.activeSelf)
             {
-                WordInputField.Select();
-                WordInputField.ActivateInputField();
+                AnswerInputField.Select();
+                AnswerInputField.ActivateInputField();
             }
         }
     }

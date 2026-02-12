@@ -10142,6 +10142,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1702441907}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
+      propertyPath: banLetterPerRound
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: bannedLettersText
       value: 
       objectReference: {fileID: 1447208980}
@@ -10158,9 +10162,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
+      propertyPath: RoundTimeLimitInSeconds
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: timeMultiplierIndicatorImage
       value: 
       objectReference: {fileID: 1178071926}
+    - target: {fileID: 3751798781333751423, guid: c66087299efbc417088a621238896aa5, type: 3}
+      propertyPath: BanLetterAtStartOfResolutionPhaseOfRound
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4474702212909272592, guid: c66087299efbc417088a621238896aa5, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 1454304884

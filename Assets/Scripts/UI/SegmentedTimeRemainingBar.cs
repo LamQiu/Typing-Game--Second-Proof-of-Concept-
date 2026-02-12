@@ -1,6 +1,13 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-
+[Serializable]
+public struct SegmentData
+{
+    public float timeScaleMultiplier;
+    public Color segmentColor;
+    public Sprite timeScaleMultiplierSprite;
+}
 public class SegmentedTimeRemainingBar : MonoBehaviour
 {
     public HorizontalLayoutGroup timeRemainingHorizontalLayoutGroup;
@@ -11,8 +18,8 @@ public class SegmentedTimeRemainingBar : MonoBehaviour
     private Image[] segmentTimeBarImages;
     private int _currentSegmentIndex;
     public int CurrentSegmentIndex => _currentSegmentIndex;
-
-    public void InitializeSegmentedTimeRemainingBar(Client.SegmentData[] segmentData, float timeLimit,
+    
+    public void InitializeSegmentedTimeRemainingBar(SegmentData[] segmentData, float timeLimit,
         bool reverseArrangement = false)
     {
         // 清空旧 segment

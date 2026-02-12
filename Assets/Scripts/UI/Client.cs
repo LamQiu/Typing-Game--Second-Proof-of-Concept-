@@ -1,57 +1,16 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
-using TMPro;
 using UI;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 public class Client : NetworkBehaviour
 {
-    #region ===== Inspector Fields =====
-
-    public int maxHealth;
-    public Transform worldCanvas;
-
-    public TMP_Text playerIndexText;
-    public TMP_InputField answerAreaText;
-    private const string k_currentHealthTextFormat = "Current Health: {0}";
-    public TMP_Text currentHealthText;
-    public Image letterCountIndicatorImage;
-    public Image letterCountIndicatorBGImage;
-    public Vector3 letterCountIndicatorBGOffsetHost;
-    public Vector3 letterCountIndicatorBGOffsetClient;
-
-    public TMP_Text promptText;
-    public Image healthBarImage;
-
-    [InfoBox("Timer Multiplier at each segment (segment index 0 is the last segment)")]
-    public SegmentData[] timeScaleMultiplierAtSegmentHost;
-
-    public SegmentData[] timeScaleMultiplierAtSegmentClient;
-
-    [Serializable]
-    public struct SegmentData
-    {
-        public float timeScaleMultiplier;
-        public Color segmentColor;
-        public Sprite timeScaleMultiplierSprite;
-    }
-
-    public SegmentedTimeRemainingBar timeRemainingSegmentedBar;
-    public TMP_Text hintText;
-
-    #endregion
+    public string HintText;
 
     #region ===== Network Variables =====
-
-    public NetworkVariable<Vector3> WorldCanvasPosition = new NetworkVariable<Vector3>();
 
     public NetworkVariable<int> LetterCount = new NetworkVariable<int>(0,
         NetworkVariableReadPermission.Everyone,
@@ -60,25 +19,15 @@ public class Client : NetworkBehaviour
     public NetworkVariable<int> CurrentScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
-    public NetworkVariable<bool> ResolutionConfirmed = new NetworkVariable<bool>();
-
     #endregion
-
-    #region ===== Private Fields =====
 
     private WordChecker _wordChecker;
     private RoundManager _roundManager;
     private PromptGenerator.Prompt _currentPrompt;
 
-    private string sharedText = "";
-    public string SharedText => sharedText;
+    private string m_answer = "";
+    public string Answer => m_answer;
     private bool _checkValid = false;
-    private bool _isResoluting;
-    private bool _isAnswering;
-    private List<string> usedWords = new List<string>();
-
-    #endregion
-
     private Client m_otherClient;
 
     #region ===== Reset Helpers =====
@@ -86,76 +35,24 @@ public class Client : NetworkBehaviour
     private void ResetLocalStates()
     {
         _checkValid = false;
-        _isResoluting = false;
-        _isAnswering = false;
-        sharedText = "";
-        usedWords.Clear();
-        _bannedLetters = Array.Empty<char>();
+        m_answer = "";
     }
 
     private void ResetUI()
     {
-        hintText.text = "";
-        promptText.text = "";
-
-        playerIndexText.text = "P" + ((int)OwnerClientId + 1);
-
-        //UpdateTimerUI(20);
-
-        // Host / Client UI difference
-        if (OwnerClientId == 0)
-        {
-            letterCountIndicatorBGImage.transform.localPosition = letterCountIndicatorBGOffsetHost;
-            healthBarImage.fillOrigin = 0;
-            timeRemainingSegmentedBar.InitializeSegmentedTimeRemainingBar(timeScaleMultiplierAtSegmentHost,
-                _roundManager.RoundTimeLimitInSeconds, true);
-        }
-        else
-        {
-            letterCountIndicatorBGImage.transform.localPosition = letterCountIndicatorBGOffsetClient;
-            healthBarImage.fillOrigin = 1;
-            timeRemainingSegmentedBar.InitializeSegmentedTimeRemainingBar(timeScaleMultiplierAtSegmentClient,
-                _roundManager.RoundTimeLimitInSeconds, false);
-        }
-
-        if (IsClient && !IsOwner)
-        {
-            worldCanvas.gameObject.SetActive(false);
-        }
-
-        answerAreaText.text = "";
-        answerAreaText.interactable = IsOwner;
-
-        currentHealthText.text = string.Format(k_currentHealthTextFormat, maxHealth);
-
-        healthBarImage.fillAmount = 1f;
-
-        UpdateLetterCountIndicator(0);
-
-        worldCanvas.gameObject.SetActive(true);
+        HintText = "";
     }
 
     private void ResetNetworkVariables()
     {
+        if (IsOwner)
+        {
+            LetterCount.Value = 0;
+        }
+
         if (IsServer)
         {
             CurrentScore.Value = 0;
-            LetterCount.Value = 0;
-            ResolutionConfirmed.Value = false;
-        }
-    }
-
-    private void ResetInputActivation()
-    {
-        if (IsOwner)
-        {
-            answerAreaText.interactable = true;
-            //answerAreaText.Select();
-            //answerAreaText.ActivateInputField();
-        }
-        else
-        {
-            answerAreaText.interactable = false;
         }
     }
 
@@ -164,7 +61,6 @@ public class Client : NetworkBehaviour
         ResetLocalStates();
         ResetUI();
         ResetNetworkVariables();
-        ResetInputActivation();
     }
 
     #endregion
@@ -207,119 +103,19 @@ public class Client : NetworkBehaviour
 
     private void UpdateTimerUI(float timerRemainingInSeconds)
     {
-        //Debug.Log($"UpdateTimerUI: {timerRemainingInSeconds}");
         UIManager.Instance.UpdateGameScreenTimer(timerRemainingInSeconds / _roundManager.RoundTimeLimitInSeconds);
-        timeRemainingSegmentedBar.UpdateTimeRemainingBar(timerRemainingInSeconds);
-    }
-
-    private void UpdateLetterCountIndicator(int letterCount)
-    {
-        Material newMat = new Material(letterCountIndicatorImage.material);
-        letterCountIndicatorImage.material = newMat;
-        newMat.SetFloat("_CurrentCount", letterCount);
     }
 
     private void UpdatePrompt(PromptGenerator.Prompt value)
     {
         _currentPrompt = value;
-        promptText.text = value.ToString();
         UIManager.Instance.UpdateCurrentPrompt(value.ToString());
     }
 
-    private void UpdateLetterCountUI(int value)
+    private void ClearCurrentAnswer()
     {
-        UpdateLetterCountIndicator(value);
-    }
-
-    private bool _ignoreInputChange = false;
-
-    private string UpdateInputFieldText(string text)
-    {
-        _ignoreInputChange = true;
-
-        string result = "";
-
-        foreach (char c in text)
-        {
-            if (_bannedLetters != null && _bannedLetters.Contains(char.ToLower(c)))
-            {
-                result += $"<color=#A59D98AA>{c}</color>";
-            }
-            else
-            {
-                result += c;
-            }
-        }
-
-        answerAreaText.text = result;
-
-        _ignoreInputChange = false;
-
-        return result;
-    }
-
-
-    private int GetValidLetterCount(string text)
-    {
-        if (_bannedLetters == null) return text.Length;
-
-        int count = 0;
-
-        foreach (char c in text)
-        {
-            // 只统计字母，并且没被 ban
-            if (char.IsLetter(c) && !_bannedLetters.Contains(char.ToLower(c)))
-            {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    private string GetNonTransparentString(string richText)
-    {
-        string result = "";
-        bool insideColorTag = false;
-
-        for (int i = 0; i < richText.Length; i++)
-        {
-            char c = richText[i];
-
-            // 检测是否进入标签 <color=...>
-            if (c == '<')
-            {
-                insideColorTag = true;
-                continue;
-            }
-
-            // 检测是否退出标签 </color>
-            if (c == '>' && insideColorTag)
-            {
-                insideColorTag = false;
-                continue;
-            }
-
-            // 如果在标签里面（透明字符），跳过
-            if (insideColorTag)
-                continue;
-
-            // 平常字符（未透明）加入结果
-            result += c;
-        }
-
-        return result;
-    }
-
-    private void UpdateInputFieldInteractability(bool interactable)
-    {
-        if (IsOwner) answerAreaText.interactable = interactable;
-    }
-
-    private void ClearInputField()
-    {
-        answerAreaText.text = "";
-        UIManager.Instance.UpdateWordInputField("");
+        m_answer = "";
+        UIManager.Instance.UpdateAnswerInputField("");
     }
 
     #endregion
@@ -334,17 +130,6 @@ public class Client : NetworkBehaviour
 
     private void OnLetterCountChanged(int prev, int value)
     {
-        UpdateLetterCountUI(value);
-
-
-        // if(IsHost)
-        // {
-        // }
-        // else
-        // {
-        //     //UIManager.Instance.UpdateP2LettersCountUI(value);
-        // }
-        //Debug.Log($"Letter Count Changed from {prev} to {value}");
     }
 
     private Client GetOtherClient()
@@ -363,19 +148,12 @@ public class Client : NetworkBehaviour
         return result;
     }
 
-    public const int k_winScore = 50;
-    //private const int k_maxScore = 75;
-
     private void OnCurrentScoreChanged(int prev, int value)
     {
         if (value >= GameManager.s_WinGameScore)
         {
-           
             value = 0;
         }
-
-        currentHealthText.text = string.Format(k_currentHealthTextFormat, value);
-        healthBarImage.fillAmount = (float)value / maxHealth;
 
         UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
@@ -393,93 +171,62 @@ public class Client : NetworkBehaviour
     {
         Debug.Log("Enter Resolution Phase Client");
 
-        if (!IsOwner)
-        {
-            hintText.gameObject.SetActive(true);
-        }
-        else
+
+        if (IsOwner)
         {
             CheckWinStateServerRpc(OwnerClientId);
         }
 
-        worldCanvas.gameObject.SetActive(true);
-        UpdateInputFieldInteractability(false);
+        HintText = "Press Enter to Continue";
 
-        hintText.text = "Press Enter to Continue";
-        _isResoluting = true;
-        _isAnswering = false;
+        // if (IsOwner)
+        //     SubmitAnswerDisplayServerRpc(GetNonTransparentString(answerAreaText.text));
 
-        if (IsOwner)
-            SubmitAnswerDisplayServerRpc(GetNonTransparentString(answerAreaText.text));
-        
-        // if(IsOwner)
-        // {
-        //     if (IsHost)
-        //     {
-        //         UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
-        //         if (m_otherClient != null)
-        //         {
-        //             UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-        //         }
-        //     }
-        //     else if (IsClient)
-        //     {
-        //         UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)k_winScore, CurrentScore.Value);
-        //         if (m_otherClient != null)
-        //         {
-        //             UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)k_winScore, m_otherClient.CurrentScore.Value);
-        //         }
-        //     }
-        // }
-        
         UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
     public void UpdateScoreUIClientRpc()
     {
-        if(IsOwner)
+        if (IsOwner)
         {
             if (IsHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore, CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                    CurrentScore.Value);
                 if (m_otherClient != null)
                 {
-                    UIManager.Instance.UpdatePlayer2FillImage(m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore, m_otherClient.CurrentScore.Value);
+                    UIManager.Instance.UpdatePlayer2FillImage(
+                        m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                        m_otherClient.CurrentScore.Value);
                 }
             }
             else if (IsClient)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore, CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                    CurrentScore.Value);
                 if (m_otherClient != null)
                 {
-                    UIManager.Instance.UpdatePlayer1FillImage(m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore, m_otherClient.CurrentScore.Value);
+                    UIManager.Instance.UpdatePlayer1FillImage(
+                        m_otherClient.CurrentScore.Value / (float)GameManager.s_WinGameScore,
+                        m_otherClient.CurrentScore.Value);
                 }
             }
         }
     }
 
-    private char[] _bannedLetters;
-
     public void OnEndResolutionPhase(List<char> bannedLetters)
     {
-        _bannedLetters = bannedLetters.ToArray();
-        UpdateInputFieldInteractability(true);
-        ClearInputField();
-        _isResoluting = false;
-
-        //answerAreaText.Select();
-        //answerAreaText.ActivateInputField();
+        UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
+        ClearCurrentAnswer();
     }
 
     [Rpc(SendTo.Server)]
     public void CheckWinStateServerRpc(ulong id)
     {
-        if(CurrentScore.Value >= GameManager.s_WinGameScore)
+        if (CurrentScore.Value >= GameManager.s_WinGameScore)
         {
-            var gm = FindAnyObjectByType<GameManager>();
-            if (gm != null)
-                gm.EndGameServerRpc();
+            GameManager.Instance.EndGameServerRpc();
         }
     }
 
@@ -490,22 +237,11 @@ public class Client : NetworkBehaviour
             m_otherClient = GetOtherClient();
         }
 
-        if (!IsOwner)
-        {
-            hintText.gameObject.SetActive(false);
-        }
-        else
-        {
-        }
-
-        hintText.text = "Press Enter to Submit";
+        HintText = "Press Enter to Submit";
 
         if (IsOwner)
         {
-            answerAreaText.interactable = true;
-            worldCanvas.gameObject.SetActive(true);
-            //answerAreaText.Select();
-            //answerAreaText.ActivateInputField();
+            UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
             if (IsHost)
             {
                 UIManager.Instance.SetP1();
@@ -516,12 +252,13 @@ public class Client : NetworkBehaviour
                 UIManager.Instance.SetP2();
                 UIManager.Instance.ResolutionScreenSetP2();
             }
+
+            LetterCount.Value = 0;
         }
 
         _checkValid = false;
-        _isAnswering = true;
 
-        Check(updateHint: false);
+        //TrySubmitAnswer();
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -530,7 +267,7 @@ public class Client : NetworkBehaviour
         if (NetworkManager.Singleton.LocalClientId == id)
         {
             Debug.Log(($"Update Resolution Press Space Hint Text: clientID: {id}"));
-            hintText.text = "";
+            HintText = "";
             UIManager.Instance.UpdateResolutionPressSpaceHintText("");
         }
     }
@@ -543,15 +280,13 @@ public class Client : NetworkBehaviour
     {
         if (IsOwner)
         {
-            //answerAreaText.onValueChanged.AddListener(OnLocalInputChanged);
-            UIManager.Instance.AddListenerOnWordInputField(OnLocalInputFieldChanged);
+            UIManager.Instance.AddListenerToAnswerInputField(OnLocalInputFieldChanged);
             _wordChecker = new WordChecker();
         }
     }
 
     private void Update()
     {
-        worldCanvas.transform.position = WorldCanvasPosition.Value;
         UpdateTimerUI(_roundManager.LocalRoundTimeRemainingInSeconds);
 
         if (!IsOwner) return;
@@ -568,8 +303,10 @@ public class Client : NetworkBehaviour
         {
             if (!_roundManager.IsResolutionPhase.Value)
             {
-                Debug.Log("SubmitAnswerServerRpc at segment: " + timeRemainingSegmentedBar.CurrentSegmentIndex + "");
-                Check(keepInput: false);
+                if (!TrySubmitAnswer())
+                {
+                    ClearCurrentAnswer();
+                }
             }
         }
 
@@ -590,14 +327,6 @@ public class Client : NetworkBehaviour
 
             UIManager.Instance.UpdateP2LettersCountUI(LetterCount.Value, true);
         }
-
-        if (EventSystem.current.currentSelectedGameObject != answerAreaText.gameObject && !_isResoluting)
-        {
-            //answerAreaText.Select();
-            //answerAreaText.ActivateInputField();
-        }
-
-        UIManager.Instance.UpdateCurrentWordInputFieldInteractability(answerAreaText.interactable);
     }
 
     public override void OnDestroy()
@@ -609,74 +338,42 @@ public class Client : NetworkBehaviour
 
     #region ===== Word Checking & Submitting =====
 
-    public void Check(bool keepInput = false, bool updateHint = true)
+    public bool TrySubmitAnswer()
     {
-        if (!IsOwner || _checkValid) return;
+        if (!IsOwner || _checkValid) return false;
 
-        string hint = "";
-        string rawAnswer = answerAreaText.text;
-        string answer = GetNonTransparentString(rawAnswer);
-        bool validDict = _wordChecker.CheckWordDictionaryValidity(answer);
-
-        if (validDict)
+        string answer = m_answer;
+        bool isAnswerValidInDictionary = _wordChecker.CheckWordDictionaryValidity(answer);
+        if (!isAnswerValidInDictionary)
         {
-            bool validPrompt = _wordChecker.CheckWordPromptValidity(answer, _currentPrompt);
-            if (validPrompt)
-            {
-                if (_roundManager.UsedWords != null && _roundManager.UsedWords.Contains(answer.ToLower()))
-                {
-                    hint = "Word already used";
-                }
-                else
-                {
-                    ChangeLetterCount(GetValidLetterCount(answer));
-                    hint = $"\"{answer}\" Submitted";
-
-                    MarkUsedWord(answer.ToLower());
-                    var index = timeRemainingSegmentedBar.CurrentSegmentIndex;
-                    if (timeRemainingSegmentedBar.CurrentSegmentIndex < 0) index = 0;
-                    if (updateHint)
-                    {
-                        this.hintText.text = hint;
-                        Debug.Log($"Updated hint: {hint}");
-                    }
-
-                    Debug.Log($"SubmitAnswerServerRpc {OwnerClientId}");
-                    _roundManager.SubmitAnswerServerRpc(OwnerClientId,
-                        timeScaleMultiplierAtSegmentClient[index].timeScaleMultiplier, answer);
-                    answerAreaText.interactable = false;
-                    _checkValid = true;
-                    UIManager.Instance.UpdateCurrentWordInputFieldInteractability(false);
-                    SoundManager.Instance?.PlaySubmitSfxServerRpc();
-
-                    return;
-                }
-            }
-            else
-            {
-                hint = $"Word {answer} doesn't meet criteria. Try Again";
-            }
-        }
-        else
-        {
-            hint = $"Invalid word {rawAnswer}. Try Again";
+            HintText = $"invalid word {m_answer}. try again";
+            return false;
         }
 
-        if (updateHint)
+        bool isAnswerValidForCurrentPrompt = _wordChecker.CheckWordPromptValidity(answer, _currentPrompt);
+        if (!isAnswerValidForCurrentPrompt)
         {
-            this.hintText.text = hint;
-            Debug.Log($"Updated hint: {hint}");
+            HintText = $"word {answer} doesn't meet criteria. try again";
+            return false;
         }
 
-        ChangeLetterCount(0);
-
-        if (!keepInput)
+        bool isAnswerUsed = _roundManager.IsAnswerUsed(answer);
+        if (isAnswerUsed)
         {
-            ClearInputField();
-            SubmitAnswerDisplayServerRpc("");
-            //answerAreaText.Select();
-            //answerAreaText.ActivateInputField();
+            HintText = "word already used";
+            return false;
         }
+
+        HintText = $"\"{answer}\" submitted";
+        MarkUsedWord(answer.ToLower());
+
+        Debug.Log($"SubmitAnswerServerRpc {OwnerClientId}");
+        _roundManager.SubmitAnswerServerRpc(OwnerClientId, answer);
+        _checkValid = true;
+        UIManager.Instance.UpdateAnswerInputFieldInteractability(false);
+        SoundManager.Instance?.PlaySubmitSfxServerRpc();
+
+        return true;
     }
 
     #endregion
@@ -690,82 +387,20 @@ public class Client : NetworkBehaviour
 
     #endregion
 
-    #region ===== Shared Input Display Sync =====
-
-    private Coroutine _inputDisplaySyncCoroutine;
-
     private void OnLocalInputFieldChanged(string value)
     {
-        if (_ignoreInputChange) return;
-
         if (SoundManager.Instance != null)
             SoundManager.Instance.PlayTypingSfx();
 
-        Debug.Log($"OnLocalInputFieldChanged: {value}");
-
-        string result = UpdateInputFieldText(GetNonTransparentString(value));
-
-        if (IsOwner)
-        {
-            UIManager.Instance.UpdateWordInputField(result);
-        }
-
-        SubmitAnswerDisplayServerRpc(GetNonTransparentString(value));
-        if (_inputDisplaySyncCoroutine != null) StopCoroutine(_inputDisplaySyncCoroutine);
-        _inputDisplaySyncCoroutine = StartCoroutine(FixCaret());
-
-        if (IsOwner)
-        {
-            LetterCount.Value = GetValidLetterCount(GetNonTransparentString(value));
-        }
-
-        //UIManager.Instance.UpdateLettersCount(value.Length);
+        m_answer = UIManager.Instance.RemoveColorTags(value);
+        UpdateServerAnswerServerRpc(m_answer);
+        LetterCount.Value = _roundManager.GetValidLetterCount(m_answer);
+        UIManager.Instance.UpdateAnswerInputField(m_answer);
     }
 
-    private IEnumerator FixCaret()
+    [Rpc(SendTo.Server)]
+    private void UpdateServerAnswerServerRpc(string answer)
     {
-        yield return null; // 等待一帧让 TMP 重新排版
-        answerAreaText.MoveTextEnd(false);
+        m_answer = answer;
     }
-
-    [ServerRpc]
-    private void SubmitAnswerDisplayServerRpc(string value, ServerRpcParams rpc = default)
-    {
-        sharedText = value;
-        UpdateAnswerDisplayClientRpc(value);
-    }
-
-
-    [ClientRpc]
-    private void UpdateAnswerDisplayClientRpc(string value)
-    {
-        sharedText = value;
-        var validLength = GetValidLetterCount(GetNonTransparentString(value));
-
-        if (answerAreaText != null && !IsOwner)
-        {
-            _ignoreInputChange = true;
-
-            if (_isAnswering)
-                answerAreaText.text = new string('*', validLength);
-            else
-                answerAreaText.text = value;
-
-            _ignoreInputChange = false;
-        }
-
-        UpdateLetterCountUI(validLength);
-    }
-
-    #endregion
-
-    #region ===== Letter Count Sync =====
-
-    private void ChangeLetterCount(int amt)
-    {
-        Debug.Log($"ChangeLetterCount: {amt}");
-        LetterCount.Value = amt;
-    }
-
-    #endregion
 }

@@ -6666,7 +6666,7 @@ MonoBehaviour:
   P2LettersCountUI: {fileID: 8630711658828380498}
   CurrentPromptText: {fileID: 7555887599330115756}
   TimerImage: {fileID: 4836763533619062475}
-  WordInputField: {fileID: 1778308215413481034}
+  AnswerInputField: {fileID: 1778308215413481034}
   InvalidLettersText: {fileID: 4863777207169159193}
   ResolutionInvalidLettersText: {fileID: 0}
 --- !u!1 &7225027714193955782

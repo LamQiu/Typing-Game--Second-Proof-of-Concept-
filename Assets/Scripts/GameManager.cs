@@ -9,15 +9,17 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Utilities;
 
-public class GameManager : NetworkBehaviour
+public class GameManager : NetworkSingleton<GameManager>
 {
     public static int s_WinGameScore = 50;
     
     public NetworkVariable<bool> GameStartedState = new NetworkVariable<bool>();
     private SceneReloader m_sceneReloader;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+        
         m_sceneReloader = GetComponent<SceneReloader>();
     }
 

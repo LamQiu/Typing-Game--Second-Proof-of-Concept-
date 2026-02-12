@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,7 +18,9 @@ namespace UI
         [SerializeField] private ResolutionScreenUI ResolutionScreenUI;
         [SerializeField] private WinScreen WinScreen;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
-
+        
+        public TMP_InputField AnswerInputField => GameScreenUI.AnswerInputField;
+        
         private Client m_client;
 
         public Client Client
@@ -95,7 +99,7 @@ namespace UI
         }
 
         #region GameScreen UI
-
+        
         public void SetP1()
         {
             GameScreenUI.SetP1();
@@ -126,24 +130,24 @@ namespace UI
             GameScreenUI.UpdateTimer(timeT);
         }
 
-        public void AddListenerOnWordInputField(UnityAction<string> onWordSubmit)
+        public void AddListenerToAnswerInputField(UnityAction<string> onWordSubmit)
         {
-            GameScreenUI.AddListenerOnWordInputField(onWordSubmit);
+            GameScreenUI.AddListenerToAnswerInputField(onWordSubmit);
         }
 
-        public void UpdateWordInputField(string content)
+        public void UpdateAnswerInputField(string answerText)
         {
-            GameScreenUI.UpdateWordInputField(content);
+            GameScreenUI.UpdateAnswerInputField(GetTextWithTransparentColor(answerText));
         }
 
-        public void UpdateCurrentWordInputFieldInteractability(bool interactable)
+        public void UpdateAnswerInputFieldInteractability(bool interactable)
         {
-            GameScreenUI.UpdateCurrentWordInputFieldInteractability(interactable);
+            GameScreenUI.UpdateAnswerInputFieldInteractability(interactable);
         }
 
         public void UpdateInvalidLetters(string invalidLetters)
         {
-            GameScreenUI.UpdateInvalidLetters(GetTextWithTransparentColor(invalidLetters));
+            GameScreenUI.UpdateInvalidLetters((invalidLetters));
         }
 
         #endregion
@@ -216,14 +220,15 @@ namespace UI
 
         private string m_bannedLetters;
 
-        public void UpdateBannedLetters(string bannedLetters)
+        public void MarkBannedLetters(string bannedLetters)
         {
             m_bannedLetters = bannedLetters;
         }
 
         public string GetTextWithTransparentColor(string text)
         {
-            //return text;
+            if (text == null) return null;
+            
             string result = "";
             for (int i = 0; i < text.Length; i++)
             {
@@ -242,6 +247,17 @@ namespace UI
 
 
             return result;
+        }
+        
+        public string RemoveColorTags(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            text = Regex.Replace(text, "<color=.*?>", "");
+            text = text.Replace("</color>", "");
+
+            return text;
         }
     }
 }
