@@ -8,7 +8,7 @@ public class WordChecker
 
     public WordChecker()
     {
-        _wordFile = Resources.Load<TextAsset>("Words");
+        _wordFile = Resources.Load<TextAsset>("Scrabble Dictionary");
         _dictionary = new HashSet<string>();
 
         foreach (var line in _wordFile.text.Split('\n'))
@@ -25,7 +25,7 @@ public class WordChecker
     }
     public bool CheckWordPromptValidity(string input, PromptGenerator.Prompt prompt)
     {
-        var isValid = _dictionary.Contains(input.ToLower());
+        var isValid = CheckWordDictionaryValidity(input);
         if (!isValid)  return false;
 
         var isValidForPrompt = true;
