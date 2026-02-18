@@ -90,8 +90,8 @@ namespace UI
 
         private Coroutine m_updateP1FillImageCoroutine;
         private Coroutine m_updateP2FillImageCoroutine;
-        private const float k_fillImageDelayInSeconds = 0.8f;
-        private const float k_fillImageLerpTimeInSeconds = 0.8f;
+        private const float k_fillImageDelayInSeconds = 1.8f;
+        private const float k_fillImageLerpTimeInSeconds = 1.2f;
 
         public void UpdatePlayer1FillImage(float fill, int currentScore)
         {

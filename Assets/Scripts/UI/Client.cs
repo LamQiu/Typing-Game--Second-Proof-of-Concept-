@@ -19,6 +19,9 @@ public class Client : NetworkBehaviour
     public NetworkVariable<int> CurrentScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<bool> AnswerCheckedValid = new NetworkVariable<bool>(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     #endregion
 
     private WordChecker _wordChecker;
@@ -27,14 +30,14 @@ public class Client : NetworkBehaviour
 
     private string m_answer = "";
     public string Answer => m_answer;
-    private bool _checkValid = false;
+    private bool m_answerCheckedValid = false;
     private Client m_otherClient;
 
     #region ===== Reset Helpers =====
 
     private void ResetLocalStates()
     {
-        _checkValid = false;
+        m_answerCheckedValid = false;
         m_answer = "";
     }
 
@@ -48,6 +51,7 @@ public class Client : NetworkBehaviour
         if (IsOwner)
         {
             LetterCount.Value = 0;
+            AnswerCheckedValid.Value = false;
         }
 
         if (IsServer)
@@ -130,6 +134,7 @@ public class Client : NetworkBehaviour
 
     private void OnLetterCountChanged(int prev, int value)
     {
+        
     }
 
     private Client GetOtherClient()
@@ -150,12 +155,6 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
-        Debug.Log($"OnCurrentScoreChanged: {value}");
-        if (value >= GameManager.Instance.WinGameScore)
-        {
-            value = 0;
-        }
-
         UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
     }
 
@@ -181,23 +180,23 @@ public class Client : NetworkBehaviour
         {
             if (IsHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
                     CurrentScore.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer2FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
+                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
                         m_otherClient.CurrentScore.Value);
                 }
             }
             else if (IsClient)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
                     CurrentScore.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer1FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.WinGameScore,
+                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
                         m_otherClient.CurrentScore.Value);
                 }
             }
@@ -240,8 +239,9 @@ public class Client : NetworkBehaviour
         }
 
         LetterCount.Value = 0;
-        _checkValid = false;
-        
+        m_answerCheckedValid = false;
+        AnswerCheckedValid.Value = false;
+
         UIManager.Instance.UpdateAnswerInputFieldInteractability(true);
         UIManager.Instance.UpdateGameScreenHintText(HintText);
     }
@@ -284,7 +284,7 @@ public class Client : NetworkBehaviour
             }
         }
 
-        if (Keyboard.current.enterKey.wasPressedThisFrame)
+        if (!m_answerCheckedValid && Keyboard.current.enterKey.wasPressedThisFrame)
         {
             if (!_roundManager.IsResolutionPhase.Value)
             {
@@ -327,8 +327,8 @@ public class Client : NetworkBehaviour
 
     public bool TrySubmitAnswer()
     {
-        if (!IsOwner || _checkValid) return false;
-
+        if (m_answer == null) return false;
+        
         string answer = m_answer;
         bool isAnswerValidInDictionary = _wordChecker.CheckWordDictionaryValidity(answer);
         if (!isAnswerValidInDictionary)
@@ -356,7 +356,8 @@ public class Client : NetworkBehaviour
 
         Debug.Log($"SubmitAnswerServerRpc {OwnerClientId}");
         _roundManager.SubmitAnswerServerRpc(OwnerClientId, answer);
-        _checkValid = true;
+        m_answerCheckedValid = true;
+        AnswerCheckedValid.Value = true;
         UIManager.Instance.UpdateAnswerInputFieldInteractability(false);
         SoundManager.Instance?.PlaySubmitSfxServerRpc();
 
@@ -382,6 +383,7 @@ public class Client : NetworkBehaviour
         m_answer = UIManager.Instance.RemoveColorTags(value);
         UpdateServerAnswerServerRpc(m_answer);
         LetterCount.Value = _roundManager.GetValidLetterCount(m_answer);
+        Debug.Log($"LetterCount in OnLocalInputFieldChanged: {m_answer} set to {LetterCount.Value}");
         UIManager.Instance.UpdateAnswerInputField(m_answer);
     }
 

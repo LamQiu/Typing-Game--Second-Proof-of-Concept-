@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UI
 {
-    public class WinScreen : MonoBehaviour
+    public class WinScreenUI : MonoBehaviour
     {
         [SerializeField] private TMP_Text WinText;
         [SerializeField] private TMP_Text WinText1;

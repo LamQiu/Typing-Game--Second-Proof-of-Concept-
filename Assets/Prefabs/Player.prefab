@@ -1645,46 +1645,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerUI
   ShowTopMostFoldoutHeaderGroup: 1
-  maxHealth: 20
-  worldCanvas: {fileID: 7390714165478221000}
-  playerIndexText: {fileID: 2715243320846040646}
-  answerAreaText: {fileID: 5259739127061829684}
-  currentHealthText: {fileID: 4319690865819287799}
-  letterCountIndicatorImage: {fileID: 8059209655039864512}
-  letterCountIndicatorBGImage: {fileID: 7303435567423057303}
-  letterCountIndicatorBGOffsetHost: {x: 280, y: 150, z: 0}
-  letterCountIndicatorBGOffsetClient: {x: -280, y: 150, z: 0}
-  promptText: {fileID: 8061017998109527277}
-  healthBarImage: {fileID: 4428688381671030505}
-  timeScaleMultiplierAtSegmentHost:
-  - timeScaleMultiplier: 1
-    segmentColor: {r: 0.9056604, g: 0.9056604, b: 0.9056604, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: 6c862bc9a70a94ca19bf3a4314513193, type: 3}
-  - timeScaleMultiplier: 2
-    segmentColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: d92fe376e90ba4b79a264b2e47c71aeb, type: 3}
-  - timeScaleMultiplier: 3
-    segmentColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: d90a80cf8b2c54b56a69c228a2c18d2c, type: 3}
-  timeScaleMultiplierAtSegmentClient:
-  - timeScaleMultiplier: 1
-    segmentColor: {r: 0.90588236, g: 0.90588236, b: 0.90588236, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: 6c862bc9a70a94ca19bf3a4314513193, type: 3}
-  - timeScaleMultiplier: 2
-    segmentColor: {r: 0.74509805, g: 0.74509805, b: 0.74509805, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: d92fe376e90ba4b79a264b2e47c71aeb, type: 3}
-  - timeScaleMultiplier: 3
-    segmentColor: {r: 0.49019608, g: 0.49019608, b: 0.49019608, a: 1}
-    timeScaleMultiplierSprite: {fileID: 21300000, guid: d90a80cf8b2c54b56a69c228a2c18d2c, type: 3}
-  timeRemainingSegmentedBar: {fileID: 4909074222834693620}
-  hintText: {fileID: 302466477821487335}
-  WorldCanvasPosition:
-    m_InternalValue: {x: 0, y: 0, z: 0}
+  HintText: 
   LetterCount:
     m_InternalValue: 0
-  Health:
-    m_InternalValue: 0
-  ResolutionConfirmed:
+  CurrentScore:
     m_InternalValue: 0
 --- !u!1 &8332771775546371992
 GameObject:

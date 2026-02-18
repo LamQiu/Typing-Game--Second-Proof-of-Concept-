@@ -18,11 +18,11 @@ namespace UI
         
         private void OnEnable()
         {
-            CreateSessionCodeInputField.onEndEdit.AddListener(OnCreateSessionCodeInputFieldEndEdit);
-            QuickJoinWidgetInputField.onEndEdit.AddListener(OnQuickJoinSessionInputFieldEndEdit);
+            CreateSessionCodeInputField.onSubmit.AddListener(OnCreateSessionCodeInputFieldSubmit);
+            QuickJoinWidgetInputField.onSubmit.AddListener(OnQuickJoinSessionInputFieldSubmit);
         }
 
-        private void OnQuickJoinSessionInputFieldEndEdit(string content)
+        private void OnQuickJoinSessionInputFieldSubmit(string content)
         {
             if(content.Length == 0)
                 return;
@@ -34,8 +34,8 @@ namespace UI
 
         private void OnDisable()
         {
-            CreateSessionCodeInputField.onEndEdit.RemoveListener(OnCreateSessionCodeInputFieldEndEdit);
-            QuickJoinWidgetInputField.onEndEdit.RemoveListener(OnQuickJoinSessionInputFieldEndEdit);
+            CreateSessionCodeInputField.onSubmit.RemoveListener(OnCreateSessionCodeInputFieldSubmit);
+            QuickJoinWidgetInputField.onSubmit.RemoveListener(OnQuickJoinSessionInputFieldSubmit);
         }
         public void Show()
         {
@@ -60,7 +60,7 @@ namespace UI
             }
         }
         
-        private void OnCreateSessionCodeInputFieldEndEdit(string content)
+        private void OnCreateSessionCodeInputFieldSubmit(string content)
         {
             if(content.Length == 0)
                 return;

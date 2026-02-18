@@ -12,25 +12,17 @@ using UnityEngine.UI;
 
 public class RoundManager : NetworkBehaviour
 {
-    // ============================================================
-    // Inspector Fields
-    // ============================================================
     public float RoundTimeLimitInSeconds;
     public int BanLetterAtStartOfResolutionPhaseOfRound = 3;
     private int m_currentRoundIndex = 0;
     public List<string> SubmittedAnswers = new List<string>();
-    // ============================================================
-    // Network Variables
-    // ============================================================
+
     public NetworkVariable<bool> IsResolutionPhase = new NetworkVariable<bool>();
     public NetworkVariable<float> RoundTimeRemainingInSeconds = new NetworkVariable<float>();
 
     private float m_localRoundTimeRemainingInSeconds;
     public float LocalRoundTimeRemainingInSeconds => m_localRoundTimeRemainingInSeconds;
 
-    // ============================================================
-    // Private State
-    // ============================================================
     private bool _started;
     private bool _ended;
     private bool _promptGenerated;
@@ -41,9 +33,8 @@ public class RoundManager : NetworkBehaviour
 
     private bool m_isGameEnd = false;
 
-    // ============================================================
-    // Unity Lifecycle
-    // ============================================================
+    private const string k_invalidAnswerResolutionScreenText = "[ unidentified answer ]";
+
     private void Start()
     {
         ResetRoundManager();
@@ -64,9 +55,6 @@ public class RoundManager : NetworkBehaviour
         RoundTimeRemainingInSeconds.OnValueChanged -= OnTimeRemainingChanged;
     }
 
-    // ============================================================
-    // Reset
-    // ============================================================
     public void ResetRoundManager()
     {
         m_currentRoundIndex = 0;
@@ -151,9 +139,6 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
-    // ============================================================
-    // Resolution Phase Logic
-    // ============================================================
     private void HandleResolutionPhase()
     {
         if (!IsServer || !_started) return;
@@ -165,9 +150,6 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
-    // ============================================================
-    // Phase Transitions
-    // ============================================================
     private IEnumerator DelayEnterNextRound()
     {
         yield return new WaitForSeconds(0.1f);
@@ -175,12 +157,6 @@ public class RoundManager : NetworkBehaviour
     }
 
     private const float k_resolveDelayTimeInSeconds = 0.3f;
-
-    private IEnumerator DelayResolve()
-    {
-        yield return new WaitForSeconds(k_resolveDelayTimeInSeconds);
-        ResoluteServerRpc();
-    }
 
     private void EnterNextRound()
     {
@@ -208,10 +184,53 @@ public class RoundManager : NetworkBehaviour
             Client host = pm.GetHost();
             Client client = pm.GetClient(1);
 
-            hostAnswer = host.Answer;
-            clientAnswer = client.Answer;
+            hostAnswer = String.IsNullOrEmpty(host.Answer) ? "" :
+                host.AnswerCheckedValid.Value ? host.Answer : k_invalidAnswerResolutionScreenText;
+            clientAnswer = String.IsNullOrEmpty(client.Answer) ? "" :
+                client.AnswerCheckedValid.Value ? client.Answer : k_invalidAnswerResolutionScreenText;
+        }
+    }
+    
+    private IEnumerator DelayResolve()
+    {
+        yield return new WaitForSeconds(k_resolveDelayTimeInSeconds);
+        ResoluteServerRpc();
+    }
+    
+    [Rpc(SendTo.Server)]
+    private void ResoluteServerRpc()
+    {
+        string text = "";
+        string hostAnswer = "";
+        string clientAnswer = "";
+
+        EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
+        if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
+        {
+            Client host = pm.GetHost();
+            Client client = pm.GetClient(1);
+
+            hostAnswer = String.IsNullOrEmpty(host.Answer) ? "" :
+                host.AnswerCheckedValid.Value ? host.Answer : k_invalidAnswerResolutionScreenText;
+            clientAnswer = String.IsNullOrEmpty(client.Answer) ? "" :
+                client.AnswerCheckedValid.Value ? client.Answer : k_invalidAnswerResolutionScreenText;
+            
+            int hostScore = host.AnswerCheckedValid.Value? host.LetterCount.Value : 0;
+            int clientScore = client.AnswerCheckedValid.Value? client.LetterCount.Value : 0;
+
+            host.CurrentScore.Value += hostScore;
+            client.CurrentScore.Value += clientScore;
+
+            StartCoroutine(DelayCheckWinStateNUpdateScoreUI(host, client));
         }
 
+        // Ban Letter
+        if (m_currentRoundIndex % BanLetterAtStartOfResolutionPhaseOfRound == 0)
+        {
+            if (IsServer)
+                BanLetter();
+        }
+        
         EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
     }
 
@@ -241,10 +260,7 @@ public class RoundManager : NetworkBehaviour
         EnterNextRound();
         EndResolutionPhaseClientRpc();
     }
-
-    // ============================================================
-    // Game Start & End
-    // ============================================================
+    
     private void OnGameStartedStateChanged(bool previousStartState, bool start)
     {
         if (start)
@@ -262,9 +278,6 @@ public class RoundManager : NetworkBehaviour
         _ended = true;
     }
 
-    // ============================================================
-    // Player Submissions
-    // ============================================================
     [Rpc(SendTo.Server)]
     public void SubmitAnswerServerRpc(ulong clientId, string answer)
     {
@@ -394,44 +407,6 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server)]
-    private void ResoluteServerRpc()
-    {
-        string text = "";
-
-        if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
-        {
-            int hostScore = pm.GetHost().LetterCount.Value;
-            int clientScore = pm.GetClient(1).LetterCount.Value;
-
-            int difference = hostScore - clientScore;
-
-            string comparison = difference > 0 ? ">" :
-                difference < 0 ? "<" :
-                "=";
-
-            text = $"Letter Count {hostScore}  <size=300%>{comparison}</size>  Letter Count {clientScore}";
-
-            Client host = pm.GetHost();
-            Client client = pm.GetClient(1);
-            host.CurrentScore.Value += host.LetterCount.Value;
-            client.CurrentScore.Value += client.LetterCount.Value;
-
-            StartCoroutine(DelayCheckWinStateNUpdateScoreUI(host, client));
-            // if (difference > 0)
-            //     pm.GetClient(1).CurrentScore.Value -= difference;
-            // else if (difference < 0)
-            //     pm.GetHost().CurrentScore.Value += difference;
-        }
-
-        // Ban Letter
-        if (m_currentRoundIndex % BanLetterAtStartOfResolutionPhaseOfRound == 0)
-        {
-            if (IsServer)
-                BanLetter();
-        }
-    }
-
     private const float k_checkWinStateDelayInSeconds = 0.1f;
 
     IEnumerator DelayCheckWinStateNUpdateScoreUI(Client host, Client client)
@@ -451,12 +426,12 @@ public class RoundManager : NetworkBehaviour
     {
         foreach (Client client in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
         {
+            if (!client.IsOwner) continue;
+            if (client.AnswerCheckedValid.Value) continue;
+
             if (!client.TrySubmitAnswer())
             {
-                if (client.IsOwner)
-                {
-                    client.LetterCount.Value = 0;
-                }
+                client.LetterCount.Value = 0;
             }
         }
     }
@@ -468,7 +443,7 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
         {
-            if(c.IsOwner)
+            if (c.IsOwner)
             {
                 c.OnEnterResolutionPhase();
             }
@@ -476,8 +451,8 @@ public class RoundManager : NetworkBehaviour
 
         UIManager.Instance.EnterResolutionScreen();
         UIManager.Instance.UpdateResolutionPressSpaceHintText("press \"space\" to continue ");
-        UIManager.Instance.UpdateP1AnswerText(hostAnswer);
-        UIManager.Instance.UpdateP2AnswerText(clientAnswer);
+        UIManager.Instance.UpdateP1ResolutionScreenAnswerText(hostAnswer);
+        UIManager.Instance.UpdateP2ResolutionScreenAnswerText(clientAnswer);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -495,7 +470,7 @@ public class RoundManager : NetworkBehaviour
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
         {
-            if(c.IsOwner)
+            if (c.IsOwner)
             {
                 c.OnEnterNextRound();
             }
