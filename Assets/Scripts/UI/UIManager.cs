@@ -197,7 +197,7 @@ namespace UI
 
         public void UpdatePlayerFillImage(bool isHost, int thisClientScore, int otherClientScore)
         {
-            float maxScore = GameManager.Instance.MaxGameScore;
+            float maxScore = GameManager.Instance.MaxPlayerHp;
             if (isHost)
             {
                 UpdatePlayer1FillImage(thisClientScore / maxScore, thisClientScore);

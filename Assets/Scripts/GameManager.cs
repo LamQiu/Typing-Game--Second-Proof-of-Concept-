@@ -11,6 +11,7 @@ using Utilities;
 
 public class GameManager : NetworkSingleton<GameManager>
 {
+    public int MaxPlayerHp = 20;
     public int WinGameScore = 50;
     public int MaxGameScore = 70;
     public static int s_WinGameScore = 50;

@@ -37,14 +37,14 @@ namespace UI
             Player1BGFillImage.fillAmount = 0;
             Player2BGFillImage.fillAmount = 0;
             
-            WinScoreText.text = GameManager.Instance.WinGameScore.ToString();
+            WinScoreText.text = GameManager.Instance.MaxPlayerHp.ToString();
 
             SetPlayer1ScoreTextsAnchoredPos(0);
             SetPlayer2ScoreTextsAnchoredPos(0);
         }
         
         private const float k_playerScoreTextAnchoredPosXMaximum = 520;
-        private const float k_playerScoreTextAnchoredPosXOffset = 30;
+        private const float k_playerScoreTextAnchoredPosXOffset = 40;
 
         private void SetPlayer1ScoreTextsAnchoredPos(float fillAmount)
         {

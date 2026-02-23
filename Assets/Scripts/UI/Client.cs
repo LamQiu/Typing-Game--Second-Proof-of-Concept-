@@ -16,14 +16,14 @@ public class Client : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Owner);
 
-    public NetworkVariable<int> CurrentScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone,
+    public NetworkVariable<int> CurrentHp = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
     public NetworkVariable<bool> AnswerCheckedValid = new NetworkVariable<bool>(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     #endregion
-
+    
     private WordChecker _wordChecker;
     private RoundManager _roundManager;
     private PromptGenerator.Prompt _currentPrompt;
@@ -32,6 +32,7 @@ public class Client : NetworkBehaviour
     public string Answer => m_answer;
     private bool m_answerCheckedValid = false;
     private Client m_otherClient;
+    private List<string> m_usedAnswers = new List<string>();
 
     #region ===== Reset Helpers =====
 
@@ -39,6 +40,7 @@ public class Client : NetworkBehaviour
     {
         m_answerCheckedValid = false;
         m_answer = "";
+        m_usedAnswers.Clear();
     }
 
     private void ResetUI()
@@ -56,7 +58,7 @@ public class Client : NetworkBehaviour
 
         if (IsServer)
         {
-            CurrentScore.Value = 0;
+            CurrentHp.Value = GameManager.Instance.MaxPlayerHp;
         }
     }
 
@@ -81,7 +83,7 @@ public class Client : NetworkBehaviour
         if (IsOwner)
         {
             LetterCount.OnValueChanged += OnLetterCountChanged;
-            CurrentScore.OnValueChanged += OnCurrentScoreChanged;
+            CurrentHp.OnValueChanged += OnCurrentScoreChanged;
 
             var promptGenerator = FindAnyObjectByType<PromptGenerator>();
             if (promptGenerator != null)
@@ -155,7 +157,7 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
-        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
+        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentHp.Value, m_otherClient.CurrentHp.Value);
     }
 
     private void OnPromptChanged(PromptGenerator.Prompt prev, PromptGenerator.Prompt value)
@@ -170,7 +172,7 @@ public class Client : NetworkBehaviour
     public void OnEnterResolutionPhase()
     {
         CheckWinStateServerRpc(OwnerClientId);
-        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentScore.Value, m_otherClient.CurrentScore.Value);
+        UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentHp.Value, m_otherClient.CurrentHp.Value);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -180,24 +182,24 @@ public class Client : NetworkBehaviour
         {
             if (IsHost)
             {
-                UIManager.Instance.UpdatePlayer1FillImage(CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
-                    CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer1FillImage(CurrentHp.Value / (float)GameManager.Instance.MaxPlayerHp,
+                    CurrentHp.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer2FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
-                        m_otherClient.CurrentScore.Value);
+                        m_otherClient.CurrentHp.Value / (float)GameManager.Instance.MaxPlayerHp,
+                        m_otherClient.CurrentHp.Value);
                 }
             }
             else if (IsClient)
             {
-                UIManager.Instance.UpdatePlayer2FillImage(CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
-                    CurrentScore.Value);
+                UIManager.Instance.UpdatePlayer2FillImage(CurrentHp.Value / (float)GameManager.Instance.MaxPlayerHp,
+                    CurrentHp.Value);
                 if (m_otherClient != null)
                 {
                     UIManager.Instance.UpdatePlayer1FillImage(
-                        m_otherClient.CurrentScore.Value / (float)GameManager.Instance.MaxGameScore,
-                        m_otherClient.CurrentScore.Value);
+                        m_otherClient.CurrentHp.Value / (float)GameManager.Instance.MaxPlayerHp,
+                        m_otherClient.CurrentHp.Value);
                 }
             }
         }
@@ -212,7 +214,7 @@ public class Client : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void CheckWinStateServerRpc(ulong id)
     {
-        if (CurrentScore.Value >= GameManager.Instance.WinGameScore)
+        if (CurrentHp.Value <= 0)
         {
             GameManager.Instance.EndGameServerRpc();
         }
@@ -344,7 +346,7 @@ public class Client : NetworkBehaviour
             return false;
         }
 
-        bool isAnswerUsed = _roundManager.IsAnswerUsed(answer);
+        bool isAnswerUsed = IsAnswerUsed(answer);
         if (isAnswerUsed)
         {
             HintText = "word already used";
@@ -367,10 +369,15 @@ public class Client : NetworkBehaviour
     #endregion
 
     #region ===== Used Words Sync =====
-
+    
     private void MarkUsedWord(string word)
     {
-        _roundManager.MarkUsedWordServerRpc(word);
+        m_usedAnswers.Add(word);
+    }
+    
+    private bool IsAnswerUsed(string answer)
+    {
+        return m_usedAnswers.Contains(answer.ToLower());
     }
 
     #endregion

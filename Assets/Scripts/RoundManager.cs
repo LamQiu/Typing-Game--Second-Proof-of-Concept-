@@ -69,7 +69,7 @@ public class RoundManager : NetworkBehaviour
         UIManager.Instance.UpdateInvalidLettersText("");
         SubmittedAnswers.Clear();
 
-        m_usedAnswers.Clear();
+        //m_usedAnswers.Clear();
         FindAnyObjectByType<PromptGenerator>().UsesPrompts.Clear();
 
         if (IsServer)
@@ -217,9 +217,20 @@ public class RoundManager : NetworkBehaviour
             
             int hostScore = host.AnswerCheckedValid.Value? host.LetterCount.Value : 0;
             int clientScore = client.AnswerCheckedValid.Value? client.LetterCount.Value : 0;
+            
+            int difference = hostScore - clientScore;
 
-            host.CurrentScore.Value += hostScore;
-            client.CurrentScore.Value += clientScore;
+            if (difference > 0) // Host wins
+            {
+                client.CurrentHp.Value -= difference;
+            }
+            else if (difference < 0) // Client wins
+            {
+                host.CurrentHp.Value += difference;
+            }
+
+            //host.CurrentHp.Value += hostScore;
+            //client.CurrentHp.Value += clientScore;
 
             StartCoroutine(DelayCheckWinStateNUpdateScoreUI(host, client));
         }
@@ -246,10 +257,10 @@ public class RoundManager : NetworkBehaviour
         {
             _ended = false;
             m_isGameEnd = true;
-            bool isHostWin = PlayerManager.Instance.GetHost().CurrentScore.Value >
-                             PlayerManager.Instance.GetClient(1).CurrentScore.Value;
-            bool isDraw = PlayerManager.Instance.GetHost().CurrentScore.Value ==
-                          PlayerManager.Instance.GetClient(1).CurrentScore.Value;
+            bool isHostWin = PlayerManager.Instance.GetHost().CurrentHp.Value >
+                             PlayerManager.Instance.GetClient(1).CurrentHp.Value;
+            bool isDraw = PlayerManager.Instance.GetHost().CurrentHp.Value ==
+                          PlayerManager.Instance.GetClient(1).CurrentHp.Value;
             string winText =
                 isDraw ? "Both" : isHostWin ? "P1" : "P2";
 
@@ -497,29 +508,28 @@ public class RoundManager : NetworkBehaviour
         m_localRoundTimeRemainingInSeconds = newValue;
     }
 
-    private List<string> m_usedAnswers = new List<string>();
-    public List<string> UsedAnswers => m_usedAnswers;
-
-    [Rpc(SendTo.Server)]
-    public void MarkUsedWordServerRpc(string answer)
-    {
-        if (!m_usedAnswers.Contains(answer))
-        {
-            m_usedAnswers.Add(answer);
-            string packedAnswers = string.Join(",", m_usedAnswers);
-            UpdateUsedWordsClientRpc(packedAnswers);
-        }
-    }
-
-
-    [Rpc(SendTo.ClientsAndHost)]
-    private void UpdateUsedWordsClientRpc(string packedAnswers)
-    {
-        m_usedAnswers = packedAnswers.Split(',').ToList();
-    }
-
-    public bool IsAnswerUsed(string answer)
-    {
-        return UsedAnswers != null && UsedAnswers.Contains(answer.ToLower());
-    }
+    // private List<string> m_usedAnswers = new List<string>();
+    // public List<string> UsedAnswers => m_usedAnswers;
+    //
+    // [Rpc(SendTo.Server)]
+    // public void MarkUsedWordServerRpc(string answer)
+    // {
+    //     if (!m_usedAnswers.Contains(answer))
+    //     {
+    //         m_usedAnswers.Add(answer);
+    //         string packedAnswers = string.Join(",", m_usedAnswers);
+    //         UpdateUsedWordsClientRpc(packedAnswers);
+    //     }
+    // }
+    //
+    // [Rpc(SendTo.ClientsAndHost)]
+    // private void UpdateUsedWordsClientRpc(string packedAnswers)
+    // {
+    //     m_usedAnswers = packedAnswers.Split(',').ToList();
+    // }
+    //
+    // public bool IsAnswerUsed(string answer)
+    // {
+    //     return UsedAnswers != null && UsedAnswers.Contains(answer.ToLower());
+    // }
 }

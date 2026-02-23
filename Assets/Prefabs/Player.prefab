@@ -1648,7 +1648,9 @@ MonoBehaviour:
   HintText: 
   LetterCount:
     m_InternalValue: 0
-  CurrentScore:
+  CurrentHp:
+    m_InternalValue: 0
+  AnswerCheckedValid:
     m_InternalValue: 0
 --- !u!1 &8332771775546371992
 GameObject:
