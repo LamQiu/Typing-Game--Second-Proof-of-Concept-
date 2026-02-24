@@ -454,17 +454,6 @@ MonoBehaviour:
     PacketDelayMS: 0
     PacketJitterMS: 0
     PacketDropRate: 0
---- !u!114 &535340932 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6385443476112125421, guid: 779c0588f69388847a2ba931d4218f55, type: 3}
-  m_PrefabInstance: {fileID: 1465362569}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &579844746
 GameObject:
   m_ObjectHideFlags: 0
@@ -2155,10 +2144,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: ResolveScreen
       objectReference: {fileID: 0}
-    - target: {fileID: 1968282345023637921, guid: 779c0588f69388847a2ba931d4218f55, type: 3}
-      propertyPath: MaxHpText
-      value: 
-      objectReference: {fileID: 535340932}
     - target: {fileID: 2112733623733855243, guid: 779c0588f69388847a2ba931d4218f55, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
