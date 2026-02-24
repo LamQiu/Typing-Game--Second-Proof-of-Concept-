@@ -9,6 +9,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class RoundManager : NetworkBehaviour
 {
@@ -200,11 +201,10 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void ResoluteServerRpc()
     {
-        string text = "";
+        //string text = "";
         string hostAnswer = "";
         string clientAnswer = "";
 
-        EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
         if (FindAnyObjectByType<PlayerManager>() is PlayerManager pm)
         {
             Client host = pm.GetHost();
@@ -310,28 +310,43 @@ public class RoundManager : NetworkBehaviour
 
     private void BanLetter()
     {
-        if (SubmittedAnswers.Count == 0) return;
-        var letterFrequencies = SubmittedAnswers
-            .SelectMany(s => s.ToCharArray())
-            .Where(char.IsLetter)
-            .GroupBy(c => c)
-            .OrderByDescending(g => g.Count())
-            .ToList();
-
         char selectedLetter = '\0';
-        SubmittedAnswers.Clear();
-
-        foreach (var group in letterFrequencies)
+        
+        if (SubmittedAnswers.Count == 0)
         {
-            char letter = group.Key;
+            var availableLetters = Enumerable.Range('a', 26)
+                .Select(i => (char)i)
+                .Where(c => !m_bannedLettersText.Contains(c))
+                .ToList();
 
-            if (!m_bannedLettersText.Contains(letter))
+            selectedLetter = availableLetters[Random.Range(0, availableLetters.Count)];
+
+            m_bannedLettersText += selectedLetter;
+        }
+        else
+        {
+            var letterFrequencies = SubmittedAnswers
+                .SelectMany(s => s.ToCharArray())
+                .Where(char.IsLetter)
+                .Where(c => !m_bannedLettersText.Contains(c))
+                .GroupBy(c => c)
+                .OrderByDescending(g => g.Count())
+                .ToList();
+            
+            foreach (var group in letterFrequencies)
             {
-                selectedLetter = letter;
-                break;
+                char letter = group.Key;
+
+                if (!m_bannedLettersText.Contains(letter))
+                {
+                    selectedLetter = letter;
+                    break;
+                }
             }
         }
 
+        SubmittedAnswers.Clear();
+        
         if (selectedLetter == '\0')
         {
             Debug.LogWarning("No available letter to ban!");
@@ -349,11 +364,18 @@ public class RoundManager : NetworkBehaviour
     private void UpdateBannedLettersTextClientRpc(char bannedLetter)
     {
         var letter = bannedLetter.ToString();
-        m_bannedLettersText += letter;
+        m_bannedLettersText = letter;
         m_bannedLettersText = m_bannedLettersText.ToLower();
         string bannedLetters = m_bannedLettersText;
         UIManager.Instance.MarkBannedLetters(bannedLetters);
         UIManager.Instance.UpdateInvalidLettersText(bannedLetters);
+    }
+    
+    public bool HasBannedLetterInAnswer(string answer)
+    {
+        if(string.IsNullOrEmpty(m_bannedLettersText))
+            return false;
+        return answer.Contains(m_bannedLettersText);
     }
 
     public int GetValidLetterCount(string text)

@@ -162,12 +162,12 @@ namespace UI
 
         public void UpdateP1ResolutionScreenAnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP1AnswerText(GetTextWithTransparentColor(text));
+            ResolutionScreenUI.UpdateP1AnswerText((text));
         }
 
         public void UpdateP2ResolutionScreenAnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP2AnswerText(GetTextWithTransparentColor(text));
+            ResolutionScreenUI.UpdateP2AnswerText((text));
         }
 
         public void ResolutionScreenSetP1()
@@ -185,9 +185,9 @@ namespace UI
             ResolutionScreenUI.UpdateResolutionPressSpaceHintText((content));
         }
 
-        public void UpdatePlayer1FillImage(float fill, int currentScore)
+        public void UpdatePlayer1FillImage(float fill, int currentHp)
         {
-            ResolutionScreenUI.UpdatePlayer1FillImage(fill, currentScore);
+            ResolutionScreenUI.UpdatePlayer1FillImage(fill, currentHp);
         }
 
         public void UpdatePlayer2FillImage(float fill, int currentScore)

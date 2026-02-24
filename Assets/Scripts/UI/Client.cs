@@ -352,6 +352,13 @@ public class Client : NetworkBehaviour
             HintText = "word already used";
             return false;
         }
+        
+        bool doesAnswerContainBannedLetter = _roundManager.HasBannedLetterInAnswer(answer);
+        if (doesAnswerContainBannedLetter)
+        {
+            HintText = "word contains banned letter";
+            return false;
+        }
 
         HintText = $"\"{answer}\" submitted";
         MarkUsedWord(answer.ToLower());

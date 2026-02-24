@@ -22,7 +22,7 @@ namespace UI
         [SerializeField] private TMP_Text Player2ScoreText;
         [SerializeField] private Color PlayerActiveTextColor;
         [SerializeField] private Color PlayerInactiveTextColor;
-        [SerializeField] private TMP_Text WinScoreText;
+        [SerializeField] private TMP_Text MaxHpText;
         public TMP_Text ResolutionPressSpaceHintText;
 
         private void Awake()
@@ -37,7 +37,9 @@ namespace UI
             Player1BGFillImage.fillAmount = 0;
             Player2BGFillImage.fillAmount = 0;
             
-            WinScoreText.text = GameManager.Instance.MaxPlayerHp.ToString();
+            MaxHpText.text = GameManager.Instance.MaxPlayerHp.ToString();
+            Player1BGFillImage.fillAmount = 1f;
+            Player2BGFillImage.fillAmount = 1f;
 
             SetPlayer1ScoreTextsAnchoredPos(0);
             SetPlayer2ScoreTextsAnchoredPos(0);
@@ -93,17 +95,17 @@ namespace UI
         private const float k_fillImageDelayInSeconds = 1.8f;
         private const float k_fillImageLerpTimeInSeconds = 1.2f;
 
-        public void UpdatePlayer1FillImage(float fill, int currentScore)
+        public void UpdatePlayer1FillImage(float fill, int currentHp)
         {
             fill = Mathf.Clamp01(fill);
-            Player1BGFillImage.fillAmount = fill;
-            Player1ScoreText.text = currentScore.ToString();
+            Player1FillImage.fillAmount = fill;
+            Player1ScoreText.text = currentHp.ToString();
             SetPlayer1ScoreTextsAnchoredPos(fill);
 
             if (gameObject.activeSelf)
             {
                 if (m_updateP1FillImageCoroutine != null) StopCoroutine(m_updateP1FillImageCoroutine);
-                m_updateP1FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player1FillImage, fill));
+                m_updateP1FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player1BGFillImage, fill));
             }
         }
 
@@ -123,14 +125,14 @@ namespace UI
         public void UpdatePlayer2FillImage(float value, int currentScore)
         {
             value = Mathf.Clamp01(value);
-            Player2BGFillImage.fillAmount = value;
+            Player2FillImage.fillAmount = value;
             Player2ScoreText.text = currentScore.ToString();
             SetPlayer2ScoreTextsAnchoredPos(value);
 
             if (gameObject.activeSelf)
             {
                 if (m_updateP2FillImageCoroutine != null) StopCoroutine(m_updateP2FillImageCoroutine);
-                m_updateP2FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player2FillImage, value));
+                m_updateP2FillImageCoroutine = StartCoroutine(UpdateFillImageCoroutine(Player2BGFillImage, value));
             }
         }
 
