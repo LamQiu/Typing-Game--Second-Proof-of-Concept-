@@ -131,7 +131,7 @@ public class Client : NetworkBehaviour
 
     private void OnTimeRemainingChanged(float prev, float value)
     {
-        UpdateTimerUI(value);
+        //UpdateTimerUI(value);
     }
 
     private void OnLetterCountChanged(int prev, int value)
@@ -157,6 +157,11 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
+        if(m_otherClient == null)
+        {
+            return;
+        }
+        
         UIManager.Instance.UpdatePlayerFillImage(IsHost, CurrentHp.Value, m_otherClient.CurrentHp.Value);
     }
 

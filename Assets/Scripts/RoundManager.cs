@@ -14,15 +14,19 @@ using Random = UnityEngine.Random;
 public class RoundManager : NetworkBehaviour
 {
     public float RoundTimeLimitInSeconds;
+    public float ResolutionTimeLimitInSeconds;
     public int BanLetterAtStartOfResolutionPhaseOfRound = 3;
     private int m_currentRoundIndex = 0;
     public List<string> SubmittedAnswers = new List<string>();
 
     public NetworkVariable<bool> IsResolutionPhase = new NetworkVariable<bool>();
     public NetworkVariable<float> RoundTimeRemainingInSeconds = new NetworkVariable<float>();
+    public NetworkVariable<float> ResolutionTimeRemainingInSeconds = new NetworkVariable<float>();
 
     private float m_localRoundTimeRemainingInSeconds;
     public float LocalRoundTimeRemainingInSeconds => m_localRoundTimeRemainingInSeconds;
+    private float m_localResolutionTimeRemainingInSeconds;
+    public float LocalResolutionTimeRemainingInSeconds => m_localResolutionTimeRemainingInSeconds;
 
     private bool _started;
     private bool _ended;
@@ -49,17 +53,27 @@ public class RoundManager : NetworkBehaviour
         GameManager.Instance.GameStartedState.OnValueChanged += OnGameStartedStateChanged;
 
         RoundTimeRemainingInSeconds.OnValueChanged += OnTimeRemainingChanged;
+        ResolutionTimeRemainingInSeconds.OnValueChanged += OnResolutionTimeRemainingChanged;
     }
-
     public override void OnDestroy()
     {
         RoundTimeRemainingInSeconds.OnValueChanged -= OnTimeRemainingChanged;
+        ResolutionTimeRemainingInSeconds.OnValueChanged -= OnResolutionTimeRemainingChanged;
+    }
+    private void OnTimeRemainingChanged(float oldValue, float newValue)
+    {
+        m_localRoundTimeRemainingInSeconds = newValue;
+    }
+    private void OnResolutionTimeRemainingChanged(float previousValue, float newValue)
+    {
+        m_localResolutionTimeRemainingInSeconds = newValue;
     }
 
     public void ResetRoundManager()
     {
         m_currentRoundIndex = 0;
         m_localRoundTimeRemainingInSeconds = RoundTimeLimitInSeconds;
+        m_localResolutionTimeRemainingInSeconds = ResolutionTimeLimitInSeconds;
 
         _started = false;
         _ended = false;
@@ -76,6 +90,7 @@ public class RoundManager : NetworkBehaviour
         if (IsServer)
         {
             RoundTimeRemainingInSeconds.Value = RoundTimeLimitInSeconds;
+            ResolutionTimeRemainingInSeconds.Value = ResolutionTimeLimitInSeconds;
             IsResolutionPhase.Value = false;
             m_confirmedResolutionClients.Clear();
             m_submittedAnswerClients.Clear();
@@ -84,6 +99,7 @@ public class RoundManager : NetworkBehaviour
 
         Debug.Log("RoundManager has been reset.");
     }
+
 
     private void Update()
     {
@@ -114,9 +130,6 @@ public class RoundManager : NetworkBehaviour
         }
     }
 
-    // ============================================================
-    // Round Phase Logic
-    // ============================================================
     private void HandleRoundPhase()
     {
         if (!_started) return;
@@ -142,12 +155,23 @@ public class RoundManager : NetworkBehaviour
 
     private void HandleResolutionPhase()
     {
-        if (!IsServer || !_started) return;
+        if(!_started) return;
+        
+        m_localResolutionTimeRemainingInSeconds -= Time.deltaTime;
+        
+        if (!IsServer) return;
+        
+        ResolutionTimeRemainingInSeconds.Value -= Time.deltaTime;
 
         if (_startResolute)
         {
             _startResolute = false;
             StartCoroutine(DelayResolve());
+        }
+        
+        if (ResolutionTimeRemainingInSeconds.Value < 0)
+        {
+            EndResolutionPhase();
         }
     }
 
@@ -161,15 +185,16 @@ public class RoundManager : NetworkBehaviour
 
     private void EnterNextRound()
     {
-        Debug.Log("Round Ended!");
+        Debug.Log("Entering Next Round");
 
         m_submittedAnswerClients.Clear();
 
         m_currentRoundIndex++;
-
-        EnterNextRoundClientRpc();
-
+        
         RoundTimeRemainingInSeconds.Value = RoundTimeLimitInSeconds;
+        ResolutionTimeRemainingInSeconds.Value = ResolutionTimeLimitInSeconds;
+        
+        EnterNextRoundClientRpc();
     }
 
     private void EnterResolutionPhase()
@@ -247,7 +272,6 @@ public class RoundManager : NetworkBehaviour
 
     private void EndResolutionPhase()
     {
-        Debug.Log("confirmedResolutionClients cleared!");
         m_confirmedResolutionClients.Clear();
         IsResolutionPhase.Value = false;
 
@@ -302,7 +326,6 @@ public class RoundManager : NetworkBehaviour
         SubmittedAnswers.Add(answer);
 
         //SoundManager.Instance?.PlaySubmitSfxServerRpc();
-
 
         if (m_submittedAnswerClients.Count >= 2)
             EnterResolutionPhase();
@@ -500,6 +523,7 @@ public class RoundManager : NetworkBehaviour
     {
         ThemeMusicManager.Instance.PlayTypingTheme();
         m_localRoundTimeRemainingInSeconds = RoundTimeLimitInSeconds;
+        m_localResolutionTimeRemainingInSeconds = ResolutionTimeLimitInSeconds;
 
         foreach (var c in FindObjectsByType<Client>(FindObjectsSortMode.InstanceID))
         {
@@ -519,15 +543,6 @@ public class RoundManager : NetworkBehaviour
         UIManager.Instance.EnterWinScreen();
         UIManager.Instance.UpdateWinText(playerID + " wins");
         ThemeMusicManager.Instance.PlayScoringTheme();
-    }
-
-    // ============================================================
-    // UI Updates
-    // ============================================================
-    private void OnTimeRemainingChanged(float oldValue, float newValue)
-    {
-        // Disabled fill updates
-        m_localRoundTimeRemainingInSeconds = newValue;
     }
 
     // private List<string> m_usedAnswers = new List<string>();

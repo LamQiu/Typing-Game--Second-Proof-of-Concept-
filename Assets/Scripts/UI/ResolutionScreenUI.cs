@@ -10,6 +10,7 @@ namespace UI
     {
         [SerializeField] private TMP_Text P1AnswerText;
         [SerializeField] private TMP_Text P2AnswerText;
+        [SerializeField] private float AnswerTextPopupIntervalInSeconds;
         [SerializeField] private GameObject P1BG;
         [SerializeField] private GameObject P2BG;
         [SerializeField] private TMP_Text Player1NameText;
@@ -66,13 +67,34 @@ namespace UI
 
         public void UpdateP1AnswerText(string text)
         {
-            P1AnswerText.text = text;
+            StartCoroutine(P1AnswerTextPopupRoutine(text));
+        }
+        
+        private IEnumerator P1AnswerTextPopupRoutine(string answer)
+        {
+            yield return StartCoroutine(AnswerTextPopupRoutine(P1AnswerText, answer));
         }
 
         public void UpdateP2AnswerText(string text)
         {
-            P2AnswerText.text = text;
+            StartCoroutine(P2AnswerTextPopupRoutine(text));
         }
+        
+        private IEnumerator P2AnswerTextPopupRoutine(string answer)
+        {
+            yield return StartCoroutine(AnswerTextPopupRoutine(P2AnswerText, answer));
+        }
+
+        private IEnumerator AnswerTextPopupRoutine(TMP_Text answerText, string answer)
+        {
+            answerText.text = "";
+            for (int i = 0; i < answer.Length; i++)
+            {
+                answerText.text = answer.Substring(0, i + 1);
+                yield return new WaitForSeconds(AnswerTextPopupIntervalInSeconds);
+            }
+        }
+        
 
         public void SetP1()
         {

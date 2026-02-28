@@ -162,11 +162,13 @@ namespace UI
 
         public void UpdateP1ResolutionScreenAnswerText(string text)
         {
+            Debug.Log($"UpdateP1ResolutionScreenAnswerText: {text}");
             ResolutionScreenUI.UpdateP1AnswerText((text));
         }
 
         public void UpdateP2ResolutionScreenAnswerText(string text)
         {
+            Debug.Log($"UpdateP2ResolutionScreenAnswerText: {text}");
             ResolutionScreenUI.UpdateP2AnswerText((text));
         }
 
