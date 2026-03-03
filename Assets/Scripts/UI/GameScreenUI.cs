@@ -130,7 +130,7 @@ namespace UI
         public void UpdateInvalidLettersText(string invalidLetters)
         {
             string spaced = string.Join("  ", invalidLetters.ToLower().ToCharArray());
-            string prefix = UIManager.Instance.GetTextWithTransparentColor("invalid letters:  ");
+            string prefix = UIManager.Instance.GetTextWithTransparentColor("banned letter:  ");
             string spacedWithTransparentColor = UIManager.Instance.GetTextWithTransparentColor(spaced);
 
             InvalidLettersText.text = prefix + spacedWithTransparentColor;

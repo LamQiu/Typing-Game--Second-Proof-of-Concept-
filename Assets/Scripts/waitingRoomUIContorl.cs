@@ -89,32 +89,32 @@ public class waitingRoomUIContorl : MonoBehaviour
                 break;
         }
 
-        void setIconStatus(GameObject icon, PlayerStatus playerStatus)
-        {
-            switch (playerStatus)
-            {
-                case PlayerStatus.NotExist:
-                    icon.SetActive(false);
-                    break;
-                case PlayerStatus.NotJoined:
-                    icon.SetActive(true);
-                    icon.transform.Find("Image").gameObject.SetActive(true);
-                    icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = whiteColor;
-                    break;
-                case PlayerStatus.Joined:
-                    icon.SetActive(true);
-                    icon.transform.Find("Image").gameObject.SetActive(false);
-                    icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = blackColor;
-                    icon.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-                    break;
-                case PlayerStatus.Self:
-                    icon.SetActive(true);
-                    icon.transform.Find("Image").gameObject.SetActive(true);
-                    icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = whiteColor;
-                    icon.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
-                    break;
-            }
-        }
+        // void setIconStatus(GameObject icon, PlayerStatus playerStatus)
+        // {
+        //     switch (playerStatus)
+        //     {
+        //         case PlayerStatus.NotExist:
+        //             icon.SetActive(false);
+        //             break;
+        //         case PlayerStatus.NotJoined:
+        //             icon.SetActive(true);
+        //             icon.transform.Find("Image").gameObject.SetActive(true);
+        //             icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = whiteColor;
+        //             break;
+        //         case PlayerStatus.Joined:
+        //             icon.SetActive(true);
+        //             icon.transform.Find("Image").gameObject.SetActive(false);
+        //             icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = blackColor;
+        //             icon.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+        //             break;
+        //         case PlayerStatus.Self:
+        //             icon.SetActive(true);
+        //             icon.transform.Find("Image").gameObject.SetActive(true);
+        //             icon.transform.Find("Text").GetComponent<TextMeshProUGUI>().color = whiteColor;
+        //             icon.transform.localScale = new Vector3(1.1f, 1.1f, 1.1f);
+        //             break;
+        //     }
+        // }
 
         // setIconStatus(iconP1, p1Status);
         // setIconStatus(iconP2, p2Status);

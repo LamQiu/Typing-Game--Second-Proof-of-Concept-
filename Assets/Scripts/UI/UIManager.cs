@@ -16,7 +16,7 @@ namespace UI
         [SerializeField] private WaitingScreenUI WaitingScreenUI;
         [SerializeField] private GameScreenUI GameScreenUI;
         [SerializeField] private ResolutionScreenUI ResolutionScreenUI;
-        [SerializeField] private WinScreen WinScreen;
+        [SerializeField] private WinScreenUI WinScreenUI;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
         
         public TMP_InputField AnswerInputField => GameScreenUI.AnswerInputField;
@@ -41,7 +41,7 @@ namespace UI
             WaitingScreenUI.Hide();
             GameScreenUI.Hide();
             ResolutionScreenUI.Hide();
-            WinScreen.Hide();
+            WinScreenUI.Hide();
             
             ResolutionScreenUI.Reset();
         }
@@ -77,7 +77,7 @@ namespace UI
             ConnectionScreenUI.Hide();
             WaitingScreenUI.Hide();
             ResolutionScreenUI.Hide();
-            WinScreen.Hide();
+            WinScreenUI.Hide();
             GameScreenUI.Show();
             GameScreenUI.ClearWordInputField();
         }
@@ -90,12 +90,12 @@ namespace UI
 
         public void EnterWinScreen()
         {
-            WinScreen.Show();
+            WinScreenUI.Show();
         }
 
         public void UpdateWinText(string text)
         {
-            WinScreen.UpdateWinText(text);
+            WinScreenUI.UpdateWinText(text);
         }
 
         #region GameScreen UI
@@ -160,14 +160,16 @@ namespace UI
 
         #region ResolutionScreen UI
 
-        public void UpdateP1AnswerText(string text)
+        public void UpdateP1ResolutionScreenAnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP1AnswerText(GetTextWithTransparentColor(text));
+            Debug.Log($"UpdateP1ResolutionScreenAnswerText: {text}");
+            ResolutionScreenUI.UpdateP1AnswerText((text));
         }
 
-        public void UpdateP2AnswerText(string text)
+        public void UpdateP2ResolutionScreenAnswerText(string text)
         {
-            ResolutionScreenUI.UpdateP2AnswerText(GetTextWithTransparentColor(text));
+            Debug.Log($"UpdateP2ResolutionScreenAnswerText: {text}");
+            ResolutionScreenUI.UpdateP2AnswerText((text));
         }
 
         public void ResolutionScreenSetP1()
@@ -185,9 +187,9 @@ namespace UI
             ResolutionScreenUI.UpdateResolutionPressSpaceHintText((content));
         }
 
-        public void UpdatePlayer1FillImage(float fill, int currentScore)
+        public void UpdatePlayer1FillImage(float fill, int currentHp)
         {
-            ResolutionScreenUI.UpdatePlayer1FillImage(fill, currentScore);
+            ResolutionScreenUI.UpdatePlayer1FillImage(fill, currentHp);
         }
 
         public void UpdatePlayer2FillImage(float fill, int currentScore)
@@ -197,16 +199,16 @@ namespace UI
 
         public void UpdatePlayerFillImage(bool isHost, int thisClientScore, int otherClientScore)
         {
-            float winScore = GameManager.Instance.WinGameScore;
+            float maxScore = GameManager.Instance.MaxPlayerHp;
             if (isHost)
             {
-                UpdatePlayer1FillImage(thisClientScore / winScore, thisClientScore);
-                UpdatePlayer2FillImage(otherClientScore / winScore, otherClientScore);
+                UpdatePlayer1FillImage(thisClientScore / maxScore, thisClientScore);
+                UpdatePlayer2FillImage(otherClientScore / maxScore, otherClientScore);
             }
             else
             {
-                UpdatePlayer2FillImage(thisClientScore / winScore, thisClientScore);
-                UpdatePlayer1FillImage(otherClientScore / winScore, otherClientScore);
+                UpdatePlayer2FillImage(thisClientScore / maxScore, thisClientScore);
+                UpdatePlayer1FillImage(otherClientScore / maxScore, otherClientScore);
             }
         }
 
