@@ -10,4 +10,8 @@ public class FMODEvents : Singleton<FMODEvents>
     [field: SerializeField] public EventReference musicMainMenu;
     [field: SerializeField] public EventReference musicTyping;
     [field: SerializeField] public EventReference musicWaiting;
+
+    [field: Header("SFX")]
+    [field: SerializeField] public EventReference playerType;
+    [field: SerializeField] public EventReference playerConfirm;
 }

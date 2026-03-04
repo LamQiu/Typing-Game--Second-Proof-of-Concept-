@@ -435,7 +435,7 @@ public class RoundManager : NetworkBehaviour
         PlayerManager.Instance.GetHost().UpdateConfirmClientRpc(clientId);
         PlayerManager.Instance.GetClient(1).UpdateConfirmClientRpc(clientId);
 
-        SoundManager.Instance?.PlaySubmitSfxServerRpc();
+        AudioManager.Instance.PlaySubmitSfxServerRpc();
 
         if (m_confirmedResolutionClients.Count >= 2)
             EndResolutionPhase();

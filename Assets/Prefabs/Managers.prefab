@@ -354,6 +354,20 @@ MonoBehaviour:
       Data3: 1573065637
       Data4: -672114920
     Path: event:/music/mus_waiting
+  playerType:
+    Guid:
+      Data1: 775392640
+      Data2: 1311924612
+      Data3: -1824642653
+      Data4: 1696591766
+    Path: event:/sfx/typing/player_type
+  playerConfirm:
+    Guid:
+      Data1: -1922674891
+      Data2: 1179628211
+      Data3: -567148919
+      Data4: -1532810791
+    Path: event:/sfx/typing/player_confirm
 --- !u!114 &567381560449278984
 MonoBehaviour:
   m_ObjectHideFlags: 0

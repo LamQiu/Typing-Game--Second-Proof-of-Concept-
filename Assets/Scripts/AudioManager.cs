@@ -1,6 +1,7 @@
 using FMOD.Studio;
 using FMODUnity;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class AudioManager : Singleton<AudioManager>
@@ -78,6 +79,24 @@ public class AudioManager : Singleton<AudioManager>
         StopMusic();
         musicEventInstance = CreateInstance(FMODEvents.Instance.musicWaiting);
         musicEventInstance.start();
+    }
+
+    public void PlayTypingSFX()
+    {
+        Debug.Log("Type");
+        RuntimeManager.PlayOneShot(FMODEvents.Instance.playerType);
+    }
+
+    [Rpc(SendTo.Server)]
+    public void PlaySubmitSfxServerRpc()
+    {
+        PlaySubmitSfxClientRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void PlaySubmitSfxClientRpc()
+    {
+        RuntimeManager.PlayOneShot(FMODEvents.Instance.playerConfirm);
     }
 
     #endregion
