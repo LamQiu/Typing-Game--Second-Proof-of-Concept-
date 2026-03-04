@@ -64,24 +64,30 @@ namespace UI
             anchorPos.x = fillAmount * k_playerScoreTextAnchoredPosXMaximum + offset;
             Player2ScoreText.rectTransform.anchoredPosition = anchorPos;
         }
+        
+        private const float k_answerTextPopupPrepareTimeInSeconds = 1f;
 
         public void UpdateP1AnswerText(string text)
         {
+            P1AnswerText.text = "";
             StartCoroutine(P1AnswerTextPopupRoutine(text));
         }
         
         private IEnumerator P1AnswerTextPopupRoutine(string answer)
         {
+            yield return new WaitForSeconds(k_answerTextPopupPrepareTimeInSeconds);
             yield return StartCoroutine(AnswerTextPopupRoutine(P1AnswerText, answer));
         }
 
         public void UpdateP2AnswerText(string text)
         {
+            P2AnswerText.text = "";
             StartCoroutine(P2AnswerTextPopupRoutine(text));
         }
         
         private IEnumerator P2AnswerTextPopupRoutine(string answer)
         {
+            yield return new WaitForSeconds(k_answerTextPopupPrepareTimeInSeconds);
             yield return StartCoroutine(AnswerTextPopupRoutine(P2AnswerText, answer));
         }
 

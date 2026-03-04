@@ -17,6 +17,7 @@ namespace UI
         [SerializeField] private GameScreenUI GameScreenUI;
         [SerializeField] private ResolutionScreenUI ResolutionScreenUI;
         [SerializeField] private WinScreenUI WinScreenUI;
+        public GameObject IsNotToBanLetterIcon;
         public string MainMenuCommandInputFieldEnterPlayKey = "play";
         
         public TMP_InputField AnswerInputField => GameScreenUI.AnswerInputField;
@@ -145,9 +146,9 @@ namespace UI
             GameScreenUI.UpdateAnswerInputFieldInteractability(interactable);
         }
 
-        public void UpdateInvalidLettersText(string invalidLetters)
+        public void UpdateBannedLettersText(string invalidLetters, bool isHide = false)
         {
-            GameScreenUI.UpdateInvalidLettersText((invalidLetters));
+            GameScreenUI.UpdateInvalidLettersText(invalidLetters, isHide);
         }
         
         public void UpdateGameScreenHintText(string hint)

@@ -28,6 +28,8 @@ public class RoundManager : NetworkBehaviour
     private float m_localResolutionTimeRemainingInSeconds;
     public float LocalResolutionTimeRemainingInSeconds => m_localResolutionTimeRemainingInSeconds;
 
+    private bool m_isToBanLetter;
+
     private bool _started;
     private bool _ended;
     private bool _promptGenerated;
@@ -43,6 +45,8 @@ public class RoundManager : NetworkBehaviour
     private void Start()
     {
         ResetRoundManager();
+        m_isToBanLetter = true;
+        UIManager.Instance.IsNotToBanLetterIcon.SetActive(false);
         //ThemeMusicManager.Instance.PlayMainMenuTheme();
         AudioManager.Instance.PlayMainMenuMusic();
     }
@@ -50,21 +54,25 @@ public class RoundManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         ResetRoundManager();
-
+        UIManager.Instance.IsNotToBanLetterIcon.SetActive(false);
+        UIManager.Instance.UpdateBannedLettersText("", !m_isToBanLetter);
         GameManager.Instance.GameStartedState.OnValueChanged += OnGameStartedStateChanged;
 
         RoundTimeRemainingInSeconds.OnValueChanged += OnTimeRemainingChanged;
         ResolutionTimeRemainingInSeconds.OnValueChanged += OnResolutionTimeRemainingChanged;
     }
+
     public override void OnDestroy()
     {
         RoundTimeRemainingInSeconds.OnValueChanged -= OnTimeRemainingChanged;
         ResolutionTimeRemainingInSeconds.OnValueChanged -= OnResolutionTimeRemainingChanged;
     }
+
     private void OnTimeRemainingChanged(float oldValue, float newValue)
     {
         m_localRoundTimeRemainingInSeconds = newValue;
     }
+
     private void OnResolutionTimeRemainingChanged(float previousValue, float newValue)
     {
         m_localResolutionTimeRemainingInSeconds = newValue;
@@ -82,7 +90,7 @@ public class RoundManager : NetworkBehaviour
         _startResolute = false;
         m_bannedLettersText = "";
         UIManager.Instance.MarkBannedLetters("");
-        UIManager.Instance.UpdateInvalidLettersText("");
+        UIManager.Instance.UpdateBannedLettersText("");
         SubmittedAnswers.Clear();
 
         //m_usedAnswers.Clear();
@@ -104,6 +112,12 @@ public class RoundManager : NetworkBehaviour
 
     private void Update()
     {
+        if (!IsSpawned && Keyboard.current.equalsKey.wasPressedThisFrame)
+        {
+            m_isToBanLetter = !m_isToBanLetter;
+            UIManager.Instance.IsNotToBanLetterIcon.SetActive(!m_isToBanLetter);
+        }
+
         if (IsResolutionPhase.Value && !m_isGameEnd)
         {
             HandleResolutionPhase();
@@ -156,12 +170,12 @@ public class RoundManager : NetworkBehaviour
 
     private void HandleResolutionPhase()
     {
-        if(!_started) return;
-        
+        if (!_started) return;
+
         m_localResolutionTimeRemainingInSeconds -= Time.deltaTime;
-        
+
         if (!IsServer) return;
-        
+
         ResolutionTimeRemainingInSeconds.Value -= Time.deltaTime;
 
         if (_startResolute)
@@ -169,7 +183,7 @@ public class RoundManager : NetworkBehaviour
             _startResolute = false;
             StartCoroutine(DelayResolve());
         }
-        
+
         if (ResolutionTimeRemainingInSeconds.Value < 0)
         {
             EndResolutionPhase();
@@ -191,10 +205,10 @@ public class RoundManager : NetworkBehaviour
         m_submittedAnswerClients.Clear();
 
         m_currentRoundIndex++;
-        
+
         RoundTimeRemainingInSeconds.Value = RoundTimeLimitInSeconds;
         ResolutionTimeRemainingInSeconds.Value = ResolutionTimeLimitInSeconds;
-        
+
         EnterNextRoundClientRpc();
     }
 
@@ -217,13 +231,13 @@ public class RoundManager : NetworkBehaviour
                 client.AnswerCheckedValid.Value ? client.Answer : k_invalidAnswerResolutionScreenText;
         }
     }
-    
+
     private IEnumerator DelayResolve()
     {
         yield return new WaitForSeconds(k_resolveDelayTimeInSeconds);
         ResoluteServerRpc();
     }
-    
+
     [Rpc(SendTo.Server)]
     private void ResoluteServerRpc()
     {
@@ -240,10 +254,10 @@ public class RoundManager : NetworkBehaviour
                 host.AnswerCheckedValid.Value ? host.Answer : k_invalidAnswerResolutionScreenText;
             clientAnswer = String.IsNullOrEmpty(client.Answer) ? "" :
                 client.AnswerCheckedValid.Value ? client.Answer : k_invalidAnswerResolutionScreenText;
-            
-            int hostScore = host.AnswerCheckedValid.Value? host.LetterCount.Value : 0;
-            int clientScore = client.AnswerCheckedValid.Value? client.LetterCount.Value : 0;
-            
+
+            int hostScore = host.AnswerCheckedValid.Value ? host.LetterCount.Value : 0;
+            int clientScore = client.AnswerCheckedValid.Value ? client.LetterCount.Value : 0;
+
             int difference = hostScore - clientScore;
 
             if (difference > 0) // Host wins
@@ -267,7 +281,7 @@ public class RoundManager : NetworkBehaviour
             if (IsServer)
                 BanLetter();
         }
-        
+
         EnterResolutionPhaseClientRpc(hostAnswer, clientAnswer);
     }
 
@@ -286,17 +300,19 @@ public class RoundManager : NetworkBehaviour
                              PlayerManager.Instance.GetClient(1).CurrentHp.Value;
             bool isDraw = PlayerManager.Instance.GetHost().CurrentHp.Value ==
                           PlayerManager.Instance.GetClient(1).CurrentHp.Value;
-            string winText =
-                isDraw ? "Both" : isHostWin ? "P1" : "P2";
+            // string winText =
+            //     isDraw ? "both" : isHostWin ? "P1" : "P2";
+            
+            string playerID = isDraw ? "draw" : isHostWin ? PlayerManager.Instance.GetHost().OwnerClientId.ToString() : PlayerManager.Instance.GetClient(1).OwnerClientId.ToString();
 
-            EndGameClientRpc(winText);
+            EndGameClientRpc(playerID);
             return;
         }
 
         EnterNextRound();
         EndResolutionPhaseClientRpc();
     }
-    
+
     private void OnGameStartedStateChanged(bool previousStartState, bool start)
     {
         if (start)
@@ -335,7 +351,7 @@ public class RoundManager : NetworkBehaviour
     private void BanLetter()
     {
         char selectedLetter = '\0';
-        
+
         if (SubmittedAnswers.Count == 0)
         {
             var availableLetters = Enumerable.Range('a', 26)
@@ -356,7 +372,7 @@ public class RoundManager : NetworkBehaviour
                 .GroupBy(c => c)
                 .OrderByDescending(g => g.Count())
                 .ToList();
-            
+
             foreach (var group in letterFrequencies)
             {
                 char letter = group.Key;
@@ -370,7 +386,7 @@ public class RoundManager : NetworkBehaviour
         }
 
         SubmittedAnswers.Clear();
-        
+
         if (selectedLetter == '\0')
         {
             Debug.LogWarning("No available letter to ban!");
@@ -387,17 +403,23 @@ public class RoundManager : NetworkBehaviour
     [Rpc(SendTo.ClientsAndHost)]
     private void UpdateBannedLettersTextClientRpc(char bannedLetter)
     {
+        if (!m_isToBanLetter)
+        {
+            UIManager.Instance.UpdateBannedLettersText("", true);
+            return;
+        }
+
         var letter = bannedLetter.ToString();
         m_bannedLettersText = letter;
         m_bannedLettersText = m_bannedLettersText.ToLower();
         string bannedLetters = m_bannedLettersText;
         UIManager.Instance.MarkBannedLetters(bannedLetters);
-        UIManager.Instance.UpdateInvalidLettersText(bannedLetters);
+        UIManager.Instance.UpdateBannedLettersText(bannedLetters, !m_isToBanLetter);
     }
-    
+
     public bool HasBannedLetterInAnswer(string answer)
     {
-        if(string.IsNullOrEmpty(m_bannedLettersText))
+        if (string.IsNullOrEmpty(m_bannedLettersText))
             return false;
         return answer.Contains(m_bannedLettersText);
     }
@@ -544,7 +566,22 @@ public class RoundManager : NetworkBehaviour
     private void EndGameClientRpc(string playerID)
     {
         UIManager.Instance.EnterWinScreen();
-        UIManager.Instance.UpdateWinText(playerID + " wins");
+        
+        string winText = "";
+        if (playerID == this.NetworkManager.LocalClientId.ToString())
+        {
+            winText = "you win";
+        }
+        else if (playerID == "both")
+        {
+            winText = "both win";
+        }
+        else
+        {
+            winText = "opponent wins";
+        }
+        
+        UIManager.Instance.UpdateWinText(winText);
         //ThemeMusicManager.Instance.PlayScoringTheme();
         AudioManager.Instance.PlayWaitingMusic();
     }

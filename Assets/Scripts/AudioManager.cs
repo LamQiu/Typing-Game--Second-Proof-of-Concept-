@@ -13,8 +13,9 @@ public class AudioManager : Singleton<AudioManager>
     private List<EventInstance> eventInstances;
     private List<StudioEventEmitter> eventEmitters;
 
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
         eventInstances = new List<EventInstance>();
         eventEmitters = new List<StudioEventEmitter>();
     }

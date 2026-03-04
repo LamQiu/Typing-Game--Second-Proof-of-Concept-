@@ -27,7 +27,7 @@ namespace UI
 
         private void Awake()
         {
-            UpdateInvalidLettersText("");
+            //UpdateInvalidLettersText("");
         }
 
         public void Show()
@@ -127,12 +127,14 @@ namespace UI
             AnswerInputField.interactable = interactable;
         }
 
-        public void UpdateInvalidLettersText(string invalidLetters)
+        public void UpdateInvalidLettersText(string invalidLetters, bool isHide = false)
         {
             string spaced = string.Join("  ", invalidLetters.ToLower().ToCharArray());
-            string prefix = UIManager.Instance.GetTextWithTransparentColor("banned letter:  ");
+            string prefix = isHide ? "" : UIManager.Instance.GetTextWithTransparentColor("banned letter:  ");
             string spacedWithTransparentColor = UIManager.Instance.GetTextWithTransparentColor(spaced);
 
+            Debug.Log($"UpdateInvalidLettersText: {prefix + spacedWithTransparentColor}");
+            
             InvalidLettersText.text = prefix + spacedWithTransparentColor;
             ResolutionInvalidLettersText.text = prefix + spacedWithTransparentColor;
         }

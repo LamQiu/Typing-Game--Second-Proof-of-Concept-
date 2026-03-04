@@ -157,6 +157,7 @@ public class Client : NetworkBehaviour
 
     private void OnCurrentScoreChanged(int prev, int value)
     {
+        Debug.Log(m_otherClient == null);
         if(m_otherClient == null)
         {
             return;
