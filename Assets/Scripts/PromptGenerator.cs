@@ -77,7 +77,7 @@ public class PromptGenerator : NetworkBehaviour
         // 过滤 banned letters
         all = all.Where(c =>
         {
-            string content = c.ToString();
+            string content = c.ToString().ToLower();
             foreach (char bannedChar in banned)
             {
                 if (content.Contains(bannedChar))

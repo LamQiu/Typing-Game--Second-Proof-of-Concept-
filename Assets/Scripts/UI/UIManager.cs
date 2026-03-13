@@ -232,6 +232,8 @@ namespace UI
         public void MarkBannedLetters(string bannedLetters)
         {
             m_bannedLetters = bannedLetters;
+            
+            Debug.Log($"MarkBannedLetters: {bannedLetters}");
         }
 
         public string GetTextWithTransparentColor(string text)

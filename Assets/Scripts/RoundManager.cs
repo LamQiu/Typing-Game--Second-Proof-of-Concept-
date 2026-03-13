@@ -156,6 +156,7 @@ public class RoundManager : NetworkBehaviour
         if (!_promptGenerated)
         {
             GeneratePrompt();
+            Debug.Log("Prompt generated");
             _promptGenerated = true;
         }
 
